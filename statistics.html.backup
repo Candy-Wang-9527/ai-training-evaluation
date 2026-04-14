@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计分析 - AI培训评估系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>AI培训评估系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-edit me-1"></i>评分
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="statistics.html">
+                            <i class="fas fa-chart-bar me-1"></i>统计分析
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="config.html">
+                            <i class="fas fa-cog me-1"></i>配置
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-text ms-3">
+                    <i class="fas fa-user me-1"></i>当前用户：<span id="currentUser">王浩</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-chart-line text-primary me-2"></i>评估数据统计分析</h2>
+                <p class="text-muted">查看AI培训与应用的评估趋势、部门对比、维度分析</p>
+            </div>
+        </div>
+
+        <!-- 数据概览卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h1 class="display-6 text-primary" id="totalAssessments">0</h1>
+                        <p class="text-muted mb-0">完成评估</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h1 class="display-6 text-success" id="averageScore">0</h1>
+                        <p class="text-muted mb-0">平均分</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h1 class="display-6 text-warning" id="highestScore">0</h1>
+                        <p class="text-muted mb-0">最高分</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <h1 class="display-6 text-danger" id="lowestScore">0</h1>
+                        <p class="text-muted mb-0">最低分</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="row mb-4">
+            <!-- 部门对比 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-building me-2"></i>部门平均分对比</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="departmentChart" height="250"></canvas>
+                        <div class="mt-3 small text-muted" id="departmentAnalysis">
+                            <p>暂无部门对比数据</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 维度分析 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-radar me-2"></i>各维度平均分</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dimensionChart" height="250"></canvas>
+                        <div class="mt-3 small text-muted" id="dimensionAnalysis">
+                            <p>暂无维度分析数据</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 趋势分析 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-trend-up me-2"></i>评分趋势分析</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <canvas id="trendChart" height="200"></canvas>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-light">
+                                    <h6><i class="fas fa-chart-pie me-2"></i>趋势解读</h6>
+                                    <p id="trendInterpretation">暂无趋势分析数据</p>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="trendPeriod" id="weekly" value="weekly" checked>
+                                        <label class="form-check-label" for="weekly">最近7天</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="trendPeriod" id="monthly" value="monthly">
+                                        <label class="form-check-label" for="monthly">最近30天</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="trendPeriod" id="quarterly" value="quarterly">
+                                        <label class="form-check-label" for="quarterly">本季度</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-table me-2"></i>详细评分数据</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="scoreTable">
+                                <thead>
+                                    <tr>
+                                        <th>员工姓名</th>
+                                        <th>部门</th>
+                                        <th>培训总分</th>
+                                        <th>应用总分</th>
+                                        <th>最终得分</th>
+                                        <th>评委</th>
+                                        <th>评分日期</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scoreTableBody">
+                                    <!-- 数据由JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-outline-primary" id="refreshDataBtn">
+                                <i class="fas fa-sync-alt me-2"></i>刷新数据
+                            </button>
+                            <button class="btn btn-outline-success" id="exportBtn">
+                                <i class="fas fa-download me-2"></i>导出数据
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                兆原数通（北京）数据科技有限公司 &copy; 2026
+                <span class="mx-2">|</span>
+                AI培训评估系统 v1.0
+                <span class="mx-2">|</span>
+                技术支持：王浩
+            </p>
+        </div>
+    </footer>
+
+    <!-- 库文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.3.0/chart.umd.min.js"></script>
+    <script src="js/statistics.js"></script>
+</body>
+</html>

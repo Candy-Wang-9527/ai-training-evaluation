@@ -1,0 +1,557 @@
+// AI培训评估系统 - 主JavaScript文件
+
+// 全局配置
+const CONFIG = {
+    trainingWeights: [0.2, 0.2, 0.2, 0.2, 0.2], // 5个培训维度权重
+    applicationWeights: [0.5, 0.5], // 2个应用维度权重
+    trainingWeight: 0.4, // 培训部分总权重
+    applicationWeight: 0.6, // 应用部分总权重
+    baseUrl: 'https://your-base-url.feishu.cn/base/embed', // 飞书Base嵌入URL
+    apiToken: '' // 如果需要API调用，这里放token
+};
+
+// 员工数据（示例数据）
+const EMPLOYEES = [
+    { id: 1, name: '张三', department: '研发部' },
+    { id: 2, name: '李四', department: '产品部' },
+    { id: 3, name: '王五', department: '销售部' },
+    { id: 4, name: '赵六', department: '实施部' }
+];
+
+// 初始化应用
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+function initializeApp() {
+    // 设置当前日期
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('evaluationDate').value = today;
+    
+    // 初始化员工选择
+    initializeEmployeeSelect();
+    
+    // 绑定事件监听器
+    bindEventListeners();
+    
+    // 初始化滑块和输入框同步
+    initializeScoreInputs();
+    
+    // 更新预览
+    updateScorePreview();
+}
+
+function initializeEmployeeSelect() {
+    const select = document.getElementById('employeeSelect');
+    
+    // 清空现有选项（除了第一个）
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    
+    // 添加员工选项
+    EMPLOYEES.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.name;
+        option.textContent = `${employee.name} - ${employee.department}`;
+        select.appendChild(option);
+    });
+}
+
+function bindEventListeners() {
+    // 员工选择变化
+    document.getElementById('employeeSelect').addEventListener('change', function(e) {
+        const selectedName = e.target.value;
+        const employee = EMPLOYEES.find(emp => emp.name === selectedName);
+        if (employee) {
+            document.getElementById('employeeDept').value = employee.department;
+        } else {
+            document.getElementById('employeeDept').value = '';
+        }
+    });
+    
+    // 保存按钮
+    document.getElementById('saveBtn').addEventListener('click', saveScore);
+    
+    // 提交按钮
+    document.getElementById('submitBtn').addEventListener('click', submitEvaluation);
+    
+    // 重置按钮
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+    
+    // 刷新Base按钮
+    document.getElementById('refreshBase').addEventListener('click', function(e) {
+        e.preventDefault();
+        refreshBaseData();
+    });
+    
+    // 打开Base按钮
+    document.getElementById('openBaseBtn').addEventListener('click', function() {
+        window.open('https://www.feishu.cn/base', '_blank');
+    });
+    
+    // 监听所有评分输入变化
+    for (let i = 1; i <= 7; i++) {
+        const slider = document.getElementById(`score${i}Slider`);
+        const input = document.getElementById(`score${i}Input`);
+        const display = document.getElementById(`score${i}Display`);
+        
+        // 滑块变化
+        slider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            input.value = value;
+            display.textContent = value;
+            updateScorePreview();
+        });
+        
+        // 输入框变化
+        input.addEventListener('input', function() {
+            let value = parseInt(this.value) || 0;
+            
+            // 限制范围0-100
+            if (value < 0) value = 0;
+            if (value > 100) value = 100;
+            
+            this.value = value;
+            slider.value = value;
+            display.textContent = value;
+            updateScorePreview();
+        });
+    }
+}
+
+function initializeScoreInputs() {
+    // 设置所有评分输入框的初始值和范围
+    for (let i = 1; i <= 7; i++) {
+        const slider = document.getElementById(`score${i}Slider`);
+        const input = document.getElementById(`score${i}Input`);
+        const display = document.getElementById(`score${i}Display`);
+        
+        // 设置初始值
+        const initialValue = 75; // 默认75分
+        slider.value = initialValue;
+        input.value = initialValue;
+        display.textContent = initialValue;
+    }
+    
+    // 触发一次更新预览
+    updateScorePreview();
+}
+
+function updateScorePreview() {
+    // 获取所有评分
+    const scores = [];
+    for (let i = 1; i <= 7; i++) {
+        const input = document.getElementById(`score${i}Input`);
+        scores.push(parseInt(input.value) || 0);
+    }
+    
+    // 计算总分
+    const trainingScores = scores.slice(0, 5); // 前5个是培训分数
+    const applicationScores = scores.slice(5, 7); // 后2个是应用分数
+    
+    const trainingTotal = calculateWeightedTotal(trainingScores, CONFIG.trainingWeights);
+    const applicationTotal = calculateWeightedTotal(applicationScores, CONFIG.applicationWeights);
+    const finalScore = trainingTotal * CONFIG.trainingWeight + applicationTotal * CONFIG.applicationWeight;
+    
+    // 更新显示
+    document.getElementById('trainingTotalPreview').textContent = trainingTotal.toFixed(1);
+    document.getElementById('applicationTotalPreview').textContent = applicationTotal.toFixed(1);
+    document.getElementById('finalScorePreview').textContent = finalScore.toFixed(1);
+    
+    // 根据分数设置颜色
+    setScoreColor(finalScore, 'finalScorePreview');
+    setScoreColor(trainingTotal, 'trainingTotalPreview');
+    setScoreColor(applicationTotal, 'applicationTotalPreview');
+}
+
+function calculateWeightedTotal(scores, weights) {
+    let total = 0;
+    for (let i = 0; i < scores.length; i++) {
+        total += scores[i] * weights[i];
+    }
+    return total;
+}
+
+function setScoreColor(score, elementId) {
+    const element = document.getElementById(elementId);
+    
+    // 移除之前的颜色类
+    element.classList.remove('text-danger', 'text-warning', 'text-info', 'text-success');
+    
+    // 根据分数设置颜色
+    if (score < 70) {
+        element.classList.add('text-danger'); // 红色：待改进
+    } else if (score < 80) {
+        element.classList.add('text-warning'); // 黄色：一般
+    } else if (score < 90) {
+        element.classList.add('text-info'); // 蓝色：良好
+    } else {
+        element.classList.add('text-success'); // 绿色：优秀
+    }
+}
+
+function saveScore() {
+    const selectedEmployee = document.getElementById('employeeSelect').value;
+    
+    if (!selectedEmployee) {
+        showAlert('请先选择被评估员工', 'warning');
+        return;
+    }
+    
+    // 收集评分数据
+    const scoreData = {
+        employeeName: selectedEmployee,
+        employeeDepartment: document.getElementById('employeeDept').value,
+        evaluationDate: document.getElementById('evaluationDate').value,
+        judgeName: document.getElementById('judgeName').textContent,
+        
+        // 培训分数
+        basicUsageScore: parseInt(document.getElementById('score1Input').value),
+        optimizationScore: parseInt(document.getElementById('score2Input').value),
+        qualityScore: parseInt(document.getElementById('score3Input').value),
+        teamScore: parseInt(document.getElementById('score4Input').value),
+        okrScore: parseInt(document.getElementById('score5Input').value),
+        
+        // 应用分数
+        relevanceScore: parseInt(document.getElementById('score6Input').value),
+        contributionScore: parseInt(document.getElementById('score7Input').value),
+        
+        // 评语
+        trainingComments: document.getElementById('trainingComments').value,
+        applicationComments: document.getElementById('applicationComments').value,
+        overallSuggestions: document.getElementById('overallSuggestions').value,
+        
+        // 计算结果
+        trainingTotal: parseFloat(document.getElementById('trainingTotalPreview').textContent),
+        applicationTotal: parseFloat(document.getElementById('applicationTotalPreview').textContent),
+        finalScore: parseFloat(document.getElementById('finalScorePreview').textContent),
+        
+        timestamp: new Date().toISOString()
+    };
+    
+    // 保存到本地存储
+    saveToLocalStorage(scoreData);
+    
+    // 如果配置了API Token，也保存到飞书Base
+    if (CONFIG.apiToken) {
+        saveToBase(scoreData);
+    } else {
+        showAlert('评分已保存到本地存储', 'success');
+    }
+    
+    // 更新最后保存时间
+    const now = new Date();
+    document.getElementById('lastSaved').textContent = `最后保存：${now.toLocaleTimeString()}`;
+}
+
+function saveToLocalStorage(scoreData) {
+    try {
+        // 获取现有数据
+        let savedScores = JSON.parse(localStorage.getItem('aiTrainingScores') || '[]');
+        
+        // 添加新数据
+        savedScores.push(scoreData);
+        
+        // 保存回localStorage
+        localStorage.setItem('aiTrainingScores', JSON.stringify(savedScores));
+        
+        console.log('评分已保存到本地存储:', scoreData);
+        return true;
+    } catch (error) {
+        console.error('保存到本地存储失败:', error);
+        showAlert('保存到本地存储失败: ' + error.message, 'danger');
+        return false;
+    }
+}
+
+async function saveToBase(scoreData) {
+    if (!CONFIG.apiToken) {
+        console.log('未配置API Token，跳过Base保存');
+        return;
+    }
+    
+    try {
+        // 这里应该是调用飞书Base API的代码
+        // 由于需要具体的Base App Token和Table ID，这里只展示示例代码
+        
+        const response = await fetch('YOUR_BASE_API_ENDPOINT', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${CONFIG.apiToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fields: {
+                    '员工姓名': scoreData.employeeName,
+                    '部门': scoreData.employeeDepartment,
+                    '评委姓名': scoreData.judgeName,
+                    '基础使用得分': scoreData.basicUsageScore,
+                    '优化方法得分': scoreData.optimizationScore,
+                    '质量保障得分': scoreData.qualityScore,
+                    '团队赋能得分': scoreData.teamScore,
+                    'OKR贡献得分': scoreData.okrScore,
+                    'OKR关联度得分': scoreData.relevanceScore,
+                    'OKR贡献度得分': scoreData.contributionScore,
+                    '培训评语': scoreData.trainingComments,
+                    '应用评语': scoreData.applicationComments,
+                    '综合建议': scoreData.overallSuggestions,
+                    '培训总分': scoreData.trainingTotal,
+                    '应用总分': scoreData.applicationTotal,
+                    '最终得分': scoreData.finalScore,
+                    '评分日期': scoreData.evaluationDate
+                }
+            })
+        });
+        
+        if (response.ok) {
+            showAlert('评分已保存到飞书Base', 'success');
+        } else {
+            throw new Error(`API返回错误: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('保存到飞书Base失败:', error);
+        showAlert('保存到飞书Base失败，已保存到本地', 'warning');
+    }
+}
+
+function submitEvaluation() {
+    const selectedEmployee = document.getElementById('employeeSelect').value;
+    
+    if (!selectedEmployee) {
+        showAlert('请先选择被评估员工', 'warning');
+        return;
+    }
+    
+    if (confirm(`确认提交对 ${selectedEmployee} 的评估吗？提交后将无法修改。`)) {
+        // 这里可以实现提交逻辑
+        saveScore(); // 先保存
+        
+        // 显示提交成功
+        showAlert('评估已成功提交！', 'success');
+        
+        // 重置表单
+        setTimeout(() => {
+            resetForm();
+        }, 2000);
+    }
+}
+
+function resetForm() {
+    if (confirm('确定要重置所有评分吗？')) {
+        // 重置员工选择
+        document.getElementById('employeeSelect').value = '';
+        document.getElementById('employeeDept').value = '';
+        
+        // 重置所有评分输入
+        for (let i = 1; i <= 7; i++) {
+            const slider = document.getElementById(`score${i}Slider`);
+            const input = document.getElementById(`score${i}Input`);
+            const display = document.getElementById(`score${i}Display`);
+            
+            const defaultValue = 75;
+            slider.value = defaultValue;
+            input.value = defaultValue;
+            display.textContent = defaultValue;
+        }
+        
+        // 重置评语
+        document.getElementById('trainingComments').value = '';
+        document.getElementById('applicationComments').value = '';
+        document.getElementById('overallSuggestions').value = '';
+        
+        // 重置预览
+        updateScorePreview();
+        
+        // 重置保存时间
+        document.getElementById('lastSaved').textContent = '未保存';
+        
+        showAlert('表单已重置', 'info');
+    }
+}
+
+function refreshBaseData() {
+    showAlert('正在刷新飞书Base数据...', 'info');
+    
+    // 这里可以实现刷新Base数据的逻辑
+    // 由于是嵌入的iframe，可能需要重新加载
+    const baseContainer = document.getElementById('baseContainer');
+    
+    // 添加加载动画
+    baseContainer.innerHTML = `
+        <div class="text-center py-5">
+            <div class="loader mx-auto"></div>
+            <p class="mt-3">正在加载飞书Base数据...</p>
+        </div>
+    `;
+    
+    // 模拟加载延迟
+    setTimeout(() => {
+        showAlert('飞书Base数据已刷新', 'success');
+        
+        // 还原原始内容
+        baseContainer.innerHTML = `
+            <p class="text-muted">
+                <i class="fas fa-external-link-alt me-2"></i>
+                飞书Base嵌入区域
+            </p>
+            <p class="small">
+                <strong>配置方式：</strong><br>
+                1. 在飞书Base中点击"分享" → "嵌入到网页"<br>
+                2. 复制嵌入代码到此处<br>
+                3. 设置合适的宽度和高度
+            </p>
+            <div class="mt-3">
+                <button class="btn btn-outline-primary btn-sm" id="openBaseBtn">
+                    <i class="fas fa-external-link-alt me-1"></i>打开飞书Base
+                </button>
+            </div>
+        `;
+        
+        // 重新绑定按钮事件
+        document.getElementById('openBaseBtn').addEventListener('click', function() {
+            window.open('https://www.feishu.cn/base', '_blank');
+        });
+    }, 1500);
+}
+
+function showAlert(message, type = 'info') {
+    // 移除现有的提示
+    const existingAlert = document.querySelector('.custom-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    // 创建新的提示
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    alertDiv.innerHTML = `
+        <i class="fas fa-${getAlertIcon(type)} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function getAlertIcon(type) {
+    switch(type) {
+        case 'success': return 'check-circle';
+        case 'warning': return 'exclamation-triangle';
+        case 'danger': return 'times-circle';
+        default: return 'info-circle';
+    }
+}
+
+// 键盘快捷键支持
+document.addEventListener('keydown', function(e) {
+    // Ctrl+S 保存
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveScore();
+    }
+    
+    // Ctrl+Enter 提交
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        submitEvaluation();
+    }
+    
+    // Esc 重置
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        resetForm();
+    }
+});
+
+// 导出数据功能
+function exportData() {
+    try {
+        const savedScores = JSON.parse(localStorage.getItem('aiTrainingScores') || '[]');
+        
+        if (savedScores.length === 0) {
+            showAlert('没有可导出的数据', 'warning');
+            return;
+        }
+        
+        // 转换为CSV格式
+        const csvContent = convertToCSV(savedScores);
+        
+        // 创建下载链接
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `ai-training-scores-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showAlert('数据已导出为CSV文件', 'success');
+    } catch (error) {
+        console.error('导出数据失败:', error);
+        showAlert('导出数据失败: ' + error.message, 'danger');
+    }
+}
+
+function convertToCSV(data) {
+    if (data.length === 0) return '';
+    
+    // 获取表头
+    const headers = Object.keys(data[0]);
+    
+    // 构建CSV内容
+    const csvRows = [
+        headers.join(','), // 表头
+        ...data.map(row => 
+            headers.map(header => 
+                JSON.stringify(row[header] || '')
+            ).join(',')
+        )
+    ];
+    
+    return csvRows.join('\n');
+}
+
+// 添加导出按钮到页面
+function addExportButton() {
+    const nav = document.querySelector('.navbar-nav');
+    if (nav) {
+        const exportLi = document.createElement('li');
+        exportLi.className = 'nav-item';
+        exportLi.innerHTML = `
+            <a class="nav-link" href="#" id="exportBtn">
+                <i class="fas fa-download me-1"></i>导出数据
+            </a>
+        `;
+        nav.appendChild(exportLi);
+        
+        document.getElementById('exportBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            exportData();
+        });
+    }
+}
+
+// 初始化导出按钮
+setTimeout(addExportButton, 1000);

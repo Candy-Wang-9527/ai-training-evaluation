@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书Base集成测试</title>
+</head>
+<body>
+    <h1>飞书Base集成测试</h1>
+    
+    <div id="status">正在检测飞书环境...</div>
+    
+    <!-- 飞书JS SDK -->
+    <script src="https://lf1-cdn-tos.bytegoofy.com/obj/eden-cn/ljhwzqkjuhp/lark/js-sdk/lark-jsapi.min.js"></script>
+    <!-- 飞书Base配置文件 -->
+    <script src="js/feishu-config.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const status = document.getElementById('status');
+            
+            try {
+                // 检测飞书环境
+                if (typeof lark !== 'undefined') {
+                    status.innerHTML = '✅ 飞书环境检测成功';
+                    
+                    // 初始化飞书Base
+                    await FeishuBase.initialize();
+                    
+                    if (FeishuBase.client.isInitialized) {
+                        status.innerHTML += '<br>✅ 飞书Base客户端初始化成功';
+                        status.innerHTML += `<br>📊 Base App Token: ${FeishuBase.client.config.app_token}`;
+                        
+                        // 测试加载员工数据
+                        const employees = await FeishuBase.loadEmployees();
+                        status.innerHTML += `<br>✅ 员工数据加载成功（${employees.length}条记录）`;
+                    } else {
+                        status.innerHTML += '<br>⚠️ 飞书Base客户端初始化失败，将使用本地模式';
+                    }
+                } else {
+                    status.innerHTML = '⚠️ 非飞书环境，将使用本地模式';
+                    
+                    // 测试本地模式
+                    const employees = await FeishuBase.loadEmployees();
+                    status.innerHTML += `<br>✅ 本地员工数据加载成功（${employees.length}条记录）`;
+                }
+            } catch (error) {
+                status.innerHTML = `❌ 错误: ${error.message}`;
+                console.error('测试错误:', error);
+            }
+        });
+    </script>
+</body>
+</html>
