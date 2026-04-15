@@ -15,7 +15,12 @@
       "Bash(git commit *)",
       "Bash(node -c js/app.js)",
       "Bash(node -c js/config.js)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(git mv *)",
+      "Bash(ls -la *.html)",
+      "Bash(grep -E \"\\\\.json$|\\\\.txt$|\\\\.md$\")",
+      "Bash(ls -la *.md)",
+      "Bash(ls -la *.md *.json *.html *.sh)"
     ],
     "additionalDirectories": [
       "D:\\software\\ai_training_evaluation\\.claude"

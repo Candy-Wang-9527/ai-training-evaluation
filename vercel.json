@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/api/$1"
+    },
+    {
+      "src": "/webhook/(.*)",
+      "dest": "/backend/webhook/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "FEISHU_APP_ID": "@feishu-app-id",
+    "FEISHU_APP_SECRET": "@feishu-app-secret",
+    "BASE_APP_TOKEN": "@base-app-token",
+    "BASE_URL": "@base-url",
+    "TABLE_EMPLOYEES": "@table-employees",
+    "TABLE_TRAININGS": "@table-trainings",
+    "TABLE_TRAINING_SCORES": "@table-training-scores",
+    "TABLE_APPLICATION_SCORES": "@table-application-scores",
+    "TABLE_SCORE_CONFIGS": "@table-score-configs"
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/backend/api/:path*"
+    }
+  ]
+}

@@ -545,6 +545,36 @@ element.innerHTML = userInput; // 存在XSS风险
 
 ## 📝 更新日志
 
+### v2.1.0 (2026-04-15) - 后端服务版 🔥
+
+#### 🚀 重大架构升级
+- ✅ **新增Node.js后端服务** - 完整的Express后端API
+- ✅ **Vercel一体化部署** - 前后端统一部署，一行命令上线
+- ✅ **飞书API代理** - 安全的API调用，不再暴露App Secret
+- ✅ **环境变量管理** - 统一配置，开发生产环境分离
+- ✅ **Webhook事件订阅** - 支持飞书事件自动同步
+
+#### 📦 新增文件
+- `backend/server.js` - Express后端服务器
+- `backend/api/feishu.js` - 飞书API代理
+- `backend/api/users.js` - 用户管理API
+- `backend/api/departments.js` - 部门管理API
+- `backend/api/scores.js` - 评分管理API
+- `backend/api/webhook.js` - 飞书事件订阅
+- `js/api-client.js` - 前端API客户端
+- `.env` - 环境变量配置
+- `vercel.json` - Vercel部署配置
+- `package.json` - 项目依赖管理
+
+#### 🎯 对于产品经理
+- ✅ **部署更简单** - 一行命令 `vercel` 完成部署
+- ✅ **配置更安全** - App Secret存储在服务器端
+- ✅ **维护更容易** - 统一的API接口，完整的错误处理
+
+#### 📖 新增文档
+- [Vercel部署完整指南](docs/guides/vercel-deployment-guide.md) - **产品经理必读**
+- [系统诊断报告](docs/reports/system-diagnostic-report-20260415.md)
+
 ### v2.0.0 (2026-04-15)
 #### 🎉 重大更新
 - ✅ 新增多级评审流程支持
