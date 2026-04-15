@@ -32,17 +32,6 @@
       "dest": "/$1"
     }
   ],
-  "env": {
-    "FEISHU_APP_ID": "@feishu-app-id",
-    "FEISHU_APP_SECRET": "@feishu-app-secret",
-    "BASE_APP_TOKEN": "@base-app-token",
-    "BASE_URL": "@base-url",
-    "TABLE_EMPLOYEES": "@table-employees",
-    "TABLE_TRAININGS": "@table-trainings",
-    "TABLE_TRAINING_SCORES": "@table-training-scores",
-    "TABLE_APPLICATION_SCORES": "@table-application-scores",
-    "TABLE_SCORE_CONFIGS": "@table-score-configs"
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
