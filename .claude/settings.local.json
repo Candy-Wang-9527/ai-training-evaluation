@@ -23,7 +23,10 @@
       "Bash(ls -la *.md *.json *.html *.sh)",
       "Bash(vercel --prod)",
       "Bash(powershell.exe -Command \"vercel --prod\")",
-      "Bash(powershell.exe -Command \"vercel login\")"
+      "Bash(powershell.exe -Command \"vercel login\")",
+      "Bash(cp app.js app.js.backup)",
+      "Bash(cp app-fixed.js app.js)",
+      "Bash(rm app-fixed.js)"
     ],
     "additionalDirectories": [
       "D:\\software\\ai_training_evaluation\\.claude"

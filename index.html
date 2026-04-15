@@ -78,11 +78,14 @@
                             <label class="form-label">员工姓名</label>
                             <select class="form-select" id="employeeSelect">
                                 <option value="">请选择员工</option>
-                                <option value="张三">张三 - 研发部</option>
-                                <option value="李四">李四 - 产品部</option>
-                                <option value="王五">王五 - 销售部</option>
-                                <option value="赵六">赵六 - 实施部</option>
+                                <!-- 员工列表将从飞书组织架构动态加载 -->
                             </select>
+                            <div id="loadingEmployees" style="display: none; text-align: center; padding: 10px;">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                                <small class="text-muted ms-2">正在加载员工列表...</small>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">部门</label>

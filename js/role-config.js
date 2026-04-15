@@ -454,31 +454,60 @@ class RoleConfigManager {
      */
     async initializeCurrentUser() {
         try {
-            // 如果在飞书环境中，获取用户信息
-            if (typeof lark !== 'undefined' && lark.ready) {
-                await lark.ready({});
-                const response = await lark.user.getUserInfo({});
+            // 优先使用后端API获取用户信息（不依赖前端飞书SDK）
+            if (window.APIClient) {
+                try {
+                    console.log('🔍 通过后端API获取当前用户信息...');
+                    const response = await window.APIClient.getCurrentUser();
 
-                if (response.code === 0) {
-                    this.currentUser = {
-                        user_id: response.data.user_id,
-                        name: response.data.name,
-                        avatar_url: response.data.avatar_url,
-                        department: await this.getUserDepartment(response.data.user_id)
-                    };
+                    if (response.success && response.data) {
+                        this.currentUser = {
+                            user_id: response.data.user_id || response.data.id,
+                            name: response.data.name,
+                            avatar_url: response.data.avatar || response.data.avatar_url,
+                            department: response.data.department || await this.getUserDepartment(response.data.user_id || response.data.id)
+                        };
+
+                        console.log('✅ 通过后端API获取用户成功:', this.currentUser);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ 后端API获取用户失败，尝试前端SDK:', error);
                 }
             }
 
-            // 如果没有飞书环境，使用模拟用户
+            // 如果后端API失败，尝试在飞书环境中获取用户信息
+            if (!this.currentUser && typeof lark !== 'undefined' && lark.ready) {
+                try {
+                    console.log('🔍 通过飞书前端SDK获取用户信息...');
+                    await lark.ready({});
+                    const response = await lark.user.getUserInfo({});
+
+                    if (response.code === 0) {
+                        this.currentUser = {
+                            user_id: response.data.user_id,
+                            name: response.data.name,
+                            avatar_url: response.data.avatar_url,
+                            department: await this.getUserDepartment(response.data.user_id)
+                        };
+
+                        console.log('✅ 通过飞书SDK获取用户成功:', this.currentUser);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ 飞书SDK获取用户失败:', error);
+                }
+            }
+
+            // 如果都没有成功，使用模拟用户（仅在开发时）
             if (!this.currentUser) {
+                console.warn('⚠️ 无法获取真实用户信息，使用模拟用户（仅用于开发）');
                 this.currentUser = this.getMockUser();
             }
 
             // 根据配置确定角色
             this.currentRole = this.getUserRole(this.currentUser);
 
-            console.log('当前用户:', this.currentUser);
-            console.log('当前角色:', this.currentRole, ROLE_DISPLAY_NAMES[this.currentRole]);
+            console.log('👤 当前用户:', this.currentUser);
+            console.log('🔑 用户角色:', this.currentRole, ROLE_DISPLAY_NAMES[this.currentRole]);
 
             return {
                 success: true,
@@ -488,7 +517,7 @@ class RoleConfigManager {
             };
 
         } catch (error) {
-            console.error('初始化用户角色失败:', error);
+            console.error('❌ 初始化用户角色失败:', error);
 
             // 使用默认模拟用户
             this.currentUser = this.getMockUser();
