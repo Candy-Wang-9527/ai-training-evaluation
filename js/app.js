@@ -198,9 +198,30 @@ function bindEventListeners() {
     });
     
     // 打开Base按钮
-    document.getElementById('openBaseBtn').addEventListener('click', function() {
-        window.open('https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc', '_blank');
-    });
+    const openBaseBtn = document.getElementById('openBaseBtn');
+    if (openBaseBtn) {
+        openBaseBtn.addEventListener('click', function() {
+            if (typeof BaseEmbedManager !== 'undefined') {
+                BaseEmbedManager.openBase();
+            } else {
+                window.open('https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc', '_blank');
+            }
+        });
+    }
+
+    // 刷新Base按钮
+    const refreshBaseBtn = document.getElementById('refreshBase');
+    if (refreshBaseBtn) {
+        refreshBaseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof BaseEmbedManager !== 'undefined') {
+                BaseEmbedManager.refresh('baseContainer');
+                AITrainingUtils.showAlert('Base嵌入已刷新', 'success');
+            } else {
+                AITrainingUtils.showAlert('Base嵌入管理器未加载', 'warning');
+            }
+        });
+    }
     
     // 监听所有评分输入变化
     for (let i = 1; i <= 7; i++) {

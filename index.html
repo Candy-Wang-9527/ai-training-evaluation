@@ -367,21 +367,10 @@
                             <a href="#" class="alert-link" id="refreshBase">刷新数据</a>
                         </div>
                         <!-- 这里嵌入飞书Base -->
-                        <div id="baseContainer" class="border rounded p-2 text-center">
-                            <p class="text-muted">
-                                <i class="fas fa-external-link-alt me-2"></i>
-                                飞书Base嵌入区域
-                            </p>
-                            <p class="small">
-                                <strong>配置方式：</strong><br>
-                                1. 在飞书Base中点击"分享" → "嵌入到网页"<br>
-                                2. 复制嵌入代码到此处<br>
-                                3. 设置合适的宽度和高度
-                            </p>
-                            <div class="mt-3">
-                                <button class="btn btn-outline-primary btn-sm" id="openBaseBtn">
-                                    <i class="fas fa-external-link-alt me-1"></i>打开飞书Base
-                                </button>
+                        <div id="baseContainer" class="border rounded p-2">
+                            <div class="text-center text-muted py-5" id="basePlaceholder">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>正在加载飞书Base...</p>
                             </div>
                         </div>
                     </div>
@@ -410,6 +399,8 @@
     <script src="js/feishu-config.js"></script>
     <!-- 公共工具库（必须在其他业务JS之前加载） -->
     <script src="js/utils.js"></script>
+    <!-- Base嵌入管理器 -->
+    <script src="js/base-embed.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
