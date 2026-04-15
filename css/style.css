@@ -1,0 +1,270 @@
+/* AI培训评估系统 - 样式文件 */
+
+/* 基础样式 */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 导航栏样式 */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.navbar-brand i {
+    font-size: 1.5rem;
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-bottom: none;
+    font-weight: 600;
+}
+
+/* 评分项样式 */
+.score-item {
+    padding: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.score-item:hover {
+    background-color: #f8f9fa;
+}
+
+.score-display {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* 滑块样式增强 */
+.form-range {
+    height: 1.5rem;
+    padding: 0;
+}
+
+.form-range::-webkit-slider-thumb {
+    background-color: var(--secondary-color);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.form-range::-moz-range-thumb {
+    background-color: var(--secondary-color);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 输入框样式 */
+.form-control, .form-select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* 徽章样式 */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+/* 表格样式 */
+.table {
+    background-color: white;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.5rem;
+}
+
+/* 页脚样式 */
+.footer {
+    border-top: 1px solid #dee2e6;
+    margin-top: 3rem;
+}
+
+/* Base嵌入容器 */
+#baseContainer {
+    min-height: 400px;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .display-6 {
+        font-size: 2rem;
+    }
+    
+    .score-item {
+        padding: 0.75rem;
+    }
+    
+    .form-control, .form-select {
+        padding: 0.375rem 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* 工具提示样式 */
+.tooltip-inner {
+    max-width: 300px;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--dark-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+/* 加载指示器 */
+.loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 打印样式 */
+@media print {
+    .navbar, .footer, .btn, .form-range, #baseContainer {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: #333 !important;
+    }
+}

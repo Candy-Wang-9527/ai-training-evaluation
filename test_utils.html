@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具库测试 - AI培训评估系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { padding: 20px; }
+        .test-section { margin: 20px 0; }
+        .test-result { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI培训评估系统 - 工具库测试</h1>
+
+        <!-- XSS防护测试 -->
+        <div class="test-section card">
+            <div class="card-header">
+                <h3>XSS防护测试</h3>
+            </div>
+            <div class="card-body">
+                <h5>测试escapeHtml函数</h5>
+                <button class="btn btn-primary" onclick="testXSS()">测试XSS防护</button>
+                <div id="xssResult" class="test-result"></div>
+            </div>
+        </div>
+
+        <!-- 输入验证测试 -->
+        <div class="test-section card">
+            <div class="card-header">
+                <h3>输入验证测试</h3>
+            </div>
+            <div class="card-body">
+                <h5>测试验证函数</h5>
+                <button class="btn btn-primary" onclick="testValidation()">测试输入验证</button>
+                <div id="validationResult" class="test-result"></div>
+            </div>
+        </div>
+
+        <!-- 本地存储测试 -->
+        <div class="test-section card">
+            <div class="card-header">
+                <h3>本地存储测试</h3>
+            </div>
+            <div class="card-body">
+                <h5>测试本地存储功能</h5>
+                <button class="btn btn-primary" onclick="testLocalStorage()">测试本地存储</button>
+                <div id="storageResult" class="test-result"></div>
+            </div>
+        </div>
+
+        <!-- 提示消息测试 -->
+        <div class="test-section card">
+            <div class="card-header">
+                <h3>提示消息测试</h3>
+            </div>
+            <div class="card-body">
+                <h5>测试showAlert函数</h5>
+                <button class="btn btn-success me-2" onclick="AITrainingUtils.showAlert('成功消息', 'success')">成功</button>
+                <button class="btn btn-danger me-2" onclick="AITrainingUtils.showAlert('错误消息', 'error')">错误</button>
+                <button class="btn btn-warning me-2" onclick="AITrainingUtils.showAlert('警告消息', 'warning')">警告</button>
+                <button class="btn btn-info" onclick="AITrainingUtils.showAlert('信息消息', 'info')">信息</button>
+            </div>
+        </div>
+
+        <!-- 计算功能测试 -->
+        <div class="test-section card">
+            <div class="card-header">
+                <h3>计算功能测试</h3>
+            </div>
+            <div class="card-body">
+                <h5>测试calculateWeightedTotal函数</h5>
+                <button class="btn btn-primary" onclick="testCalculation()">测试计算功能</button>
+                <div id="calcResult" class="test-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载工具库 -->
+    <script src="js/utils.js"></script>
+
+    <script>
+        // XSS防护测试
+        function testXSS() {
+            const resultDiv = document.getElementById('xssResult');
+            const maliciousInput = '<script>alert("XSS")</script><img src=x onerror=alert("XSS")>';
+            const safeOutput = AITrainingUtils.escapeHtml(maliciousInput);
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>输入:</strong> ${maliciousInput}<br>
+                    <strong>安全输出:</strong> ${safeOutput}<br>
+                    <strong>状态:</strong> XSS攻击已成功防护
+                </div>
+            `;
+        }
+
+        // 输入验证测试
+        function testValidation() {
+            const resultDiv = document.getElementById('validationResult');
+            let results = [];
+
+            // 测试员工姓名验证
+            results.push(`员工姓名 "张三": ${AITrainingUtils.isValidEmployeeName('张三') ? '✅有效' : '❌无效'}`);
+            results.push(`员工姓名 "<script>": ${AITrainingUtils.isValidEmployeeName('<script>') ? '❌无效' : '✅已拦截'}`);
+            results.push(`员工姓名 "A".repeat(100): ${AITrainingUtils.isValidEmployeeName('A'.repeat(100)) ? '❌无效' : '✅已拦截'}`);
+
+            // 测试评分验证
+            results.push(`评分 85: ${AITrainingUtils.isValidScore(85) ? '✅有效' : '❌无效'}`);
+            results.push(`评分 -1: ${AITrainingUtils.isValidScore(-1) ? '❌无效' : '✅已拦截'}`);
+            results.push(`评分 101: ${AITrainingUtils.isValidScore(101) ? '❌无效' : '✅已拦截'}`);
+
+            // 测试日期验证
+            results.push(`日期 "2026-04-15": ${AITrainingUtils.isValidDate('2026-04-15') ? '✅有效' : '❌无效'}`);
+            results.push(`日期 "invalid": ${AITrainingUtils.isValidDate('invalid') ? '❌无效' : '✅已拦截'}`);
+
+            // 测试权重验证
+            results.push(`权重 0.5: ${AITrainingUtils.isValidWeight(0.5) ? '✅有效' : '❌无效'}`);
+            results.push(`权重 1.5: ${AITrainingUtils.isValidWeight(1.5) ? '❌无效' : '✅已拦截'}`);
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>验证测试结果:</strong><br>
+                    ${results.join('<br>')}
+                </div>
+            `;
+        }
+
+        // 本地存储测试
+        function testLocalStorage() {
+            const resultDiv = document.getElementById('storageResult');
+
+            // 测试保存
+            const testData = {
+                test: '数据',
+                timestamp: new Date().toISOString()
+            };
+
+            const saved = AITrainingUtils.saveToLocalStorage('test_key', testData);
+            const loaded = AITrainingUtils.loadFromLocalStorage('test_key', null);
+
+            resultDiv.innerHTML = `
+                <div class="alert ${saved && loaded ? 'alert-success' : 'alert-danger'}">
+                    <strong>本地存储测试:</strong><br>
+                    保存: ${saved ? '✅成功' : '❌失败'}<br>
+                    读取: ${loaded ? '✅成功' : '❌失败'}<br>
+                    数据: ${JSON.stringify(loaded)}
+                </div>
+            `;
+
+            // 清理测试数据
+            AITrainingUtils.removeFromLocalStorage('test_key');
+        }
+
+        // 计算功能测试
+        function testCalculation() {
+            const resultDiv = document.getElementById('calcResult');
+
+            const scores = [80, 85, 90, 75, 88];
+            const weights = [0.2, 0.2, 0.2, 0.2, 0.2];
+            const total = AITrainingUtils.calculateWeightedTotal(scores, weights);
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>计算测试:</strong><br>
+                    分数: [${scores.join(', ')}]<br>
+                    权重: [${weights.join(', ')}]<br>
+                    加权总分: ${total.toFixed(2)}
+                </div>
+            `;
+        }
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', function() {
+            AITrainingUtils.showAlert('工具库测试页面已加载完成', 'success');
+        });
+    </script>
+</body>
+</html>

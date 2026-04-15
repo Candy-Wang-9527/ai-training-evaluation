@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色配置 - AI培训评估系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .role-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .permission-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            margin: 0.25rem;
+            border-radius: 0.25rem;
+        }
+        .user-mapping-item {
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>AI培训评估系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-edit me-1"></i>评分
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="training-input.html">
+                            <i class="fas fa-plus-circle me-1"></i>培训录入
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="statistics.html">
+                            <i class="fas fa-chart-bar me-1"></i>统计分析
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="role-config.html">
+                            <i class="fas fa-user-cog me-1"></i>角色配置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="config.html">
+                            <i class="fas fa-cog me-1"></i>系统配置
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-text ms-3">
+                    <i class="fas fa-user me-1"></i>当前用户：<span id="currentUser">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-user-cog text-primary me-2"></i>角色配置管理</h2>
+                <p class="text-muted">配置系统用户的角色和权限，不依赖飞书组织架构</p>
+            </div>
+        </div>
+
+        <!-- 当前状态 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1"><i class="fas fa-info-circle me-2"></i>当前登录信息</h5>
+                                <p class="mb-0">
+                                    <strong>用户：</strong><span id="currentUserName">加载中...</span>
+                                    <span class="mx-2">|</span>
+                                    <strong>角色：</strong><span class="badge bg-info" id="currentUserRole">检测中...</span>
+                                    <span class="mx-2">|</span>
+                                    <strong>飞书环境：</strong><span id="feishuEnvStatus">检测中...</span>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-outline-primary" id="refreshUserInfo">
+                                    <i class="fas fa-sync-alt me-2"></i>刷新信息
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 角色概览 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3"><i class="fas fa-tags me-2"></i>系统角色概览</h4>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- 人力部门 -->
+            <div class="col-md-3 mb-3">
+                <div class="card role-card h-100">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-users-cog me-2"></i>人力部门
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">HR - 人力部门</h6>
+                        <p class="card-text small">负责录入培训基础信息和管理培训流程</p>
+                        <div class="mb-2">
+                            <strong>主要权限：</strong>
+                            <div>
+                                <span class="badge bg-light text-dark permission-tag">创建培训</span>
+                                <span class="badge bg-light text-dark permission-tag">编辑信息</span>
+                                <span class="badge bg-light text-dark permission-tag">提交评审</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评审员 -->
+            <div class="col-md-3 mb-3">
+                <div class="card role-card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fas fa-user-tie me-2"></i>评审员
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">Judge - 评审员</h6>
+                        <p class="card-text small">负责对员工进行AI培训应用评分</p>
+                        <div class="mb-2">
+                            <strong>主要权限：</strong>
+                            <div>
+                                <span class="badge bg-light text-dark permission-tag">查看评估</span>
+                                <span class="badge bg-light text-dark permission-tag">进行评分</span>
+                                <span class="badge bg-light text-dark permission-tag">提交评审</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 讲师 -->
+            <div class="col-md-3 mb-3">
+                <div class="card role-card h-100">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>讲师
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">Instructor - 讲师</h6>
+                        <p class="card-text small">负责培训实施和培训效果评估</p>
+                        <div class="mb-2">
+                            <strong>主要权限：</strong>
+                            <div>
+                                <span class="badge bg-light text-dark permission-tag">查看培训</span>
+                                <span class="badge bg-light text-dark permission-tag">管理内容</span>
+                                <span class="badge bg-light text-dark permission-tag">上传材料</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总经理 -->
+            <div class="col-md-3 mb-3">
+                <div class="card role-card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <i class="fas fa-user-shield me-2"></i>总经理
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">GM - 总经理</h6>
+                        <p class="card-text small">负责最终审批和决策</p>
+                        <div class="mb-2">
+                            <strong>主要权限：</strong>
+                            <div>
+                                <span class="badge bg-light text-dark permission-tag">查看所有</span>
+                                <span class="badge bg-light text-dark permission-tag">批准评估</span>
+                                <span class="badge bg-light text-dark permission-tag">调整评分</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 角色配置区域 -->
+        <div class="row">
+            <!-- 添加用户角色配置 -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>添加用户角色配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addRoleMappingForm">
+                            <div class="mb-3">
+                                <label class="form-label">配置方式</label>
+                                <select class="form-select" id="mappingType">
+                                    <option value="by_name">按姓名配置</option>
+                                    <option value="by_user_id">按飞书用户ID配置</option>
+                                    <option value="by_department">按部门配置</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">标识符</label>
+                                <input type="text" class="form-control" id="identifier" placeholder="根据配置方式输入姓名/用户ID/部门">
+                                <small class="form-text text-muted">
+                                    按姓名：输入员工姓名<br>
+                                    按用户ID：输入飞书用户ID<br>
+                                    按部门：输入部门名称
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">分配角色</label>
+                                <select class="form-select" id="assignRole" required>
+                                    <option value="">请选择角色</option>
+                                    <option value="hr">人力部门</option>
+                                    <option value="judge">评审员</option>
+                                    <option value="instructor">讲师</option>
+                                    <option value="gm">总经理</option>
+                                    <option value="admin">管理员</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>添加角色配置
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 当前角色配置列表 -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>当前角色配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <ul class="nav nav-tabs" id="mappingTabs" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#byName" type="button">按姓名</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#byUserId" type="button">按用户ID</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#byDept" type="button">按部门</button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="tab-content">
+                            <!-- 按姓名配置 -->
+                            <div class="tab-pane fade show active" id="byName">
+                                <div id="byNameMappings">
+                                    <p class="text-muted text-center">暂无配置</p>
+                                </div>
+                            </div>
+
+                            <!-- 按用户ID配置 -->
+                            <div class="tab-pane fade" id="byUserId">
+                                <div id="byUserIdMappings">
+                                    <p class="text-muted text-center">暂无配置</p>
+                                </div>
+                            </div>
+
+                            <!-- 按部门配置 -->
+                            <div class="tab-pane fade" id="byDept">
+                                <div id="byDeptMappings">
+                                    <p class="text-muted text-center">暂无配置</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试角色区域 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-flask me-2"></i>测试角色（开发环境用）</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <p class="mb-0">在非飞书环境中测试不同角色的功能。这不会影响实际的用户角色配置。</p>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="testRoleSelect">
+                                    <option value="">选择测试角色</option>
+                                    <option value="hr">人力部门</option>
+                                    <option value="judge">评审员</option>
+                                    <option value="instructor">讲师</option>
+                                    <option value="gm">总经理</option>
+                                    <option value="admin">管理员</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mt-3">
+                                <button class="btn btn-primary me-2" id="setTestRoleBtn">
+                                    <i class="fas fa-user-tag me-2"></i>设置测试角色
+                                </button>
+                                <button class="btn btn-outline-secondary" id="clearTestRoleBtn">
+                                    <i class="fas fa-undo me-2"></i>清除测试角色
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置管理 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>配置管理</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>导出配置</h6>
+                                <p class="small text-muted">将当前角色配置导出为JSON文件，可用于备份或在其他环境中导入。</p>
+                                <button class="btn btn-outline-primary" id="exportConfigBtn">
+                                    <i class="fas fa-download me-2"></i>导出角色配置
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>导入配置</h6>
+                                <p class="small text-muted">从JSON文件导入角色配置。注意：导入会覆盖现有的配置。</p>
+                                <input type="file" id="importConfigFile" accept=".json" style="display: none;">
+                                <button class="btn btn-outline-secondary" onclick="document.getElementById('importConfigFile').click()">
+                                    <i class="fas fa-upload me-2"></i>导入角色配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                兆原数通（北京）数据科技有限公司 &copy; 2026
+                <span class="mx-2">|</span>
+                AI培训评估系统 v2.0
+                <span class="mx-2">|</span>
+                技术支持：王浩
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 飞书Base配置 -->
+    <script src="js/feishu-config-workflow.js"></script>
+
+    <!-- 角色配置 -->
+    <script src="js/role-config.js"></script>
+
+    <!-- 公共工具库 -->
+    <script src="js/utils.js"></script>
+
+    <!-- 角色配置页面逻辑 -->
+    <script>
+        // 页面加载初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('角色配置页面初始化...');
+
+            // 初始化当前用户信息
+            await initializeUserInfo();
+
+            // 加载角色配置
+            loadRoleConfigurations();
+
+            // 绑定事件监听器
+            bindEventListeners();
+        });
+
+        // 初始化用户信息
+        async function initializeUserInfo() {
+            try {
+                const initResult = await window.RoleConfig.initialize();
+
+                // 更新UI显示
+                if (initResult.user) {
+                    document.getElementById('currentUserName').textContent = initResult.user.name;
+                }
+
+                if (initResult.role) {
+                    const roleConfig = window.RoleConfig.getRoleConfig(initResult.role);
+                    const roleBadge = document.getElementById('currentUserRole');
+                    roleBadge.textContent = roleConfig ? roleConfig.name : initResult.role;
+                    roleBadge.className = `badge ${roleConfig ? roleConfig.color : 'bg-secondary'}`;
+                }
+
+                // 飞书环境状态
+                const isFeishuEnv = typeof lark !== 'undefined' && lark;
+                document.getElementById('feishuEnvStatus').textContent = isFeishuEnv ? '✅ 飞书环境' : '❌ 非飞书环境';
+
+            } catch (error) {
+                console.error('初始化用户信息失败:', error);
+                document.getElementById('currentUserName').textContent = '未知用户';
+                document.getElementById('currentUserRole').textContent = '检测失败';
+            }
+        }
+
+        // 加载角色配置
+        function loadRoleConfigurations() {
+            const mappings = window.RoleConfig.getAllUserRoleMappings();
+
+            // 渲染按姓名配置
+            renderMappings('byNameMappings', mappings.by_name, 'by_name');
+
+            // 渲染按用户ID配置
+            renderMappings('byUserIdMappings', mappings.by_user_id, 'by_user_id');
+
+            // 渲染按部门配置
+            renderMappings('byDeptMappings', mappings.by_department, 'by_department');
+        }
+
+        // 渲染映射列表
+        function renderMappings(containerId, mappings, mappingType) {
+            const container = document.getElementById(containerId);
+            const entries = Object.entries(mappings);
+
+            if (entries.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">暂无配置</p>';
+                return;
+            }
+
+            let html = '';
+            entries.forEach(([identifier, role]) => {
+                const roleConfig = window.RoleConfig.getRoleConfig(role);
+                const roleName = roleConfig ? roleConfig.name : role;
+                const roleColor = roleConfig ? roleConfig.color.replace('bg-', 'text-') : 'text-secondary';
+
+                html += `
+                    <div class="user-mapping-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${identifier}</strong>
+                                <span class="badge ${roleColor} ms-2">${roleName}</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeMapping('${mappingType}', '${identifier}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 绑定事件监听器
+        function bindEventListeners() {
+            // 添加角色配置表单
+            document.getElementById('addRoleMappingForm').addEventListener('submit', handleAddMapping);
+
+            // 测试角色按钮
+            document.getElementById('setTestRoleBtn').addEventListener('click', handleSetTestRole);
+            document.getElementById('clearTestRoleBtn').addEventListener('click', handleClearTestRole);
+
+            // 刷新用户信息
+            document.getElementById('refreshUserInfo').addEventListener('click', async function() {
+                await initializeUserInfo();
+                AITrainingUtils.showAlert('用户信息已刷新', 'success');
+            });
+
+            // 导出配置
+            document.getElementById('exportConfigBtn').addEventListener('click', handleExportConfig);
+
+            // 导入配置
+            document.getElementById('importConfigFile').addEventListener('change', handleImportConfig);
+        }
+
+        // 处理添加角色配置
+        function handleAddMapping(event) {
+            event.preventDefault();
+
+            const mappingType = document.getElementById('mappingType').value;
+            const identifier = document.getElementById('identifier').value.trim();
+            const role = document.getElementById('assignRole').value;
+
+            if (!identifier) {
+                AITrainingUtils.showAlert('请输入标识符', 'warning');
+                return;
+            }
+
+            if (!role) {
+                AITrainingUtils.showAlert('请选择角色', 'warning');
+                return;
+            }
+
+            try {
+                // 转换映射类型名称
+                const typeMapping = {
+                    'by_name': 'by_name',
+                    'by_user_id': 'by_user_id',
+                    'by_department': 'by_department'
+                };
+
+                const result = window.RoleConfig.addUserRoleMapping(identifier, role, typeMapping[mappingType]);
+
+                if (result.success) {
+                    AITrainingUtils.showAlert(result.message, 'success');
+
+                    // 清空表单
+                    document.getElementById('identifier').value = '';
+                    document.getElementById('assignRole').value = '';
+
+                    // 重新加载配置
+                    loadRoleConfigurations();
+                } else {
+                    AITrainingUtils.showAlert(result.message, 'error');
+                }
+
+            } catch (error) {
+                AITrainingUtils.showAlert('添加失败: ' + error.message, 'error');
+            }
+        }
+
+        // 移除角色映射
+        function removeMapping(mappingType, identifier) {
+            if (!confirm(`确定要移除 ${identifier} 的角色配置吗？`)) {
+                return;
+            }
+
+            try {
+                const result = window.RoleConfig.removeUserRoleMapping(identifier, mappingType);
+
+                if (result.success) {
+                    AITrainingUtils.showAlert(result.message, 'success');
+                    loadRoleConfigurations();
+                } else {
+                    AITrainingUtils.showAlert(result.message, 'error');
+                }
+
+            } catch (error) {
+                AITrainingUtils.showAlert('移除失败: ' + error.message, 'error');
+            }
+        }
+
+        // 处理设置测试角色
+        function handleSetTestRole() {
+            const testRole = document.getElementById('testRoleSelect').value;
+
+            if (!testRole) {
+                AITrainingUtils.showAlert('请选择测试角色', 'warning');
+                return;
+            }
+
+            try {
+                const result = window.RoleConfig.setTestRole(testRole);
+
+                if (result.success) {
+                    AITrainingUtils.showAlert(`测试角色已设置为：${result.role_name}`, 'success');
+
+                    // 刷新用户信息显示
+                    setTimeout(async () => {
+                        await initializeUserInfo();
+                    }, 500);
+                }
+
+            } catch (error) {
+                AITrainingUtils.showAlert('设置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 处理清除测试角色
+        function handleClearTestRole() {
+            try {
+                const result = window.RoleConfig.clearTestRole();
+
+                if (result.success) {
+                    AITrainingUtils.showAlert(result.message, 'success');
+
+                    // 刷新用户信息显示
+                    setTimeout(async () => {
+                        await initializeUserInfo();
+                    }, 500);
+                }
+
+            } catch (error) {
+                AITrainingUtils.showAlert('清除失败: ' + error.message, 'error');
+            }
+        }
+
+        // 处理导出配置
+        function handleExportConfig() {
+            try {
+                const configData = window.RoleConfig.exportRoleConfig();
+                const dataStr = JSON.stringify(configData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `role_config_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+
+                URL.revokeObjectURL(url);
+                AITrainingUtils.showAlert('角色配置已导出', 'success');
+
+            } catch (error) {
+                AITrainingUtils.showAlert('导出失败: ' + error.message, 'error');
+            }
+        }
+
+        // 处理导入配置
+        function handleImportConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const configData = JSON.parse(e.target.result);
+                    const result = window.RoleConfig.importRoleConfig(configData);
+
+                    if (result.success) {
+                        AITrainingUtils.showAlert(result.message, 'success');
+                        loadRoleConfigurations();
+                    } else {
+                        AITrainingUtils.showAlert(result.message, 'error');
+                    }
+
+                } catch (error) {
+                    AITrainingUtils.showAlert('导入失败: 无效的JSON文件', 'error');
+                }
+            };
+
+            reader.readAsText(file);
+            // 清空文件选择
+            event.target.value = '';
+        }
+
+        console.log('角色配置页面逻辑已加载');
+    </script>
+</body>
+</html>
