@@ -198,38 +198,67 @@ function bindEventListeners() {
     });
     
     // 打开Base按钮
-    document.getElementById('openBaseBtn').addEventListener('click', function() {
-        window.open('https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc', '_blank');
-    });
+    const openBaseBtn = document.getElementById('openBaseBtn');
+    if (openBaseBtn) {
+        openBaseBtn.addEventListener('click', function() {
+            if (typeof BaseEmbedManager !== 'undefined') {
+                BaseEmbedManager.openBase();
+            } else {
+                window.open('https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc', '_blank');
+            }
+        });
+    }
+
+    // 刷新Base按钮
+    const refreshBaseBtn = document.getElementById('refreshBase');
+    if (refreshBaseBtn) {
+        refreshBaseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof BaseEmbedManager !== 'undefined') {
+                BaseEmbedManager.refresh('baseContainer');
+                AITrainingUtils.showAlert('Base嵌入已刷新', 'success');
+            } else {
+                AITrainingUtils.showAlert('Base嵌入管理器未加载', 'warning');
+            }
+        });
+    }
     
     // 监听所有评分输入变化
     for (let i = 1; i <= 7; i++) {
         const slider = document.getElementById(`score${i}Slider`);
         const input = document.getElementById(`score${i}Input`);
         const display = document.getElementById(`score${i}Display`);
-        
+
+        console.log(`初始化评分${i}: slider=${!!slider}, input=${!!input}, display=${!!display}`);
+
         if (slider && input && display) {
-            // 滑块变化
+            // 滑块变化 -> 更新输入框和显示
             slider.addEventListener('input', function() {
+                console.log(`滑块${i}变化: ${this.value}`);
                 const value = parseInt(this.value);
                 input.value = value;
                 display.textContent = value;
                 updateScorePreview();
             });
-            
-            // 输入框变化
+
+            // 输入框变化 -> 更新滑块和显示
             input.addEventListener('input', function() {
+                console.log(`输入框${i}变化: ${this.value}`);
                 let value = parseInt(this.value) || 0;
-                
+
                 // 限制范围0-100
                 if (value < 0) value = 0;
                 if (value > 100) value = 100;
-                
+
                 this.value = value;
                 slider.value = value;
                 display.textContent = value;
                 updateScorePreview();
             });
+
+            console.log(`✅ 评分${i}滑块同步事件已绑定`);
+        } else {
+            console.error(`❌ 评分${i}元素未找到: slider=${!!slider}, input=${!!input}, display=${!!display}`);
         }
     }
     
@@ -242,20 +271,33 @@ function bindEventListeners() {
 
 // 初始化评分输入
 function initializeScoreInputs() {
+    console.log('🔧 开始初始化评分输入...');
+
     // 设置所有评分输入框的初始值和范围
     for (let i = 1; i <= 7; i++) {
         const slider = document.getElementById(`score${i}Slider`);
         const input = document.getElementById(`score${i}Input`);
         const display = document.getElementById(`score${i}Display`);
-        
+
         if (slider && input && display) {
-            // 设置初始值
-            const initialValue = 75; // 默认75分
+            // 使用HTML中的初始值,而不是强制设置为75
+            const htmlSliderValue = parseInt(slider.value) || 0;
+            const htmlInputValue = parseInt(input.value) || 0;
+
+            // 统一使用滑块的值作为初始值
+            const initialValue = htmlSliderValue;
+
             slider.value = initialValue;
             input.value = initialValue;
             display.textContent = initialValue;
+
+            console.log(`✅ 评分${i}初始化完成, 初始值=${initialValue}`);
+        } else {
+            console.error(`❌ 评分${i}元素未找到: slider=${!!slider}, input=${!!input}, display=${!!display}`);
         }
     }
+
+    console.log('✅ 评分输入初始化完成');
 }
 
 // 更新分数预览

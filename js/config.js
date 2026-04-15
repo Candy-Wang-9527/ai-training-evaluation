@@ -29,6 +29,9 @@ async function initConfigPage() {
     // 加载系统配置
     await loadSystemConfig();
 
+    // 加载Base配置（新增）
+    loadBaseConfig();
+
     // 加载员工数据
     await loadConfigEmployees();
 
@@ -309,6 +312,40 @@ function bindConfigEvents() {
         saveSystemConfigBtn.addEventListener('click', saveSystemConfig);
     }
 
+    // 保存Base配置按钮
+    const saveBaseConfigBtn = document.getElementById('saveBaseConfigBtn');
+    if (saveBaseConfigBtn) {
+        saveBaseConfigBtn.addEventListener('click', saveBaseConfig);
+    }
+
+    // 清空Base配置按钮
+    const clearBaseConfigBtn = document.getElementById('clearBaseConfigBtn');
+    if (clearBaseConfigBtn) {
+        clearBaseConfigBtn.addEventListener('click', clearBaseConfig);
+    }
+
+    // 测试连接按钮
+    const testConnectionBtn = document.getElementById('testConnectionBtn');
+    if (testConnectionBtn) {
+        testConnectionBtn.addEventListener('click', testBaseConnection);
+    }
+
+    // App Token显示/隐藏切换
+    const toggleAppTokenBtn = document.getElementById('toggleAppToken');
+    if (toggleAppTokenBtn) {
+        toggleAppTokenBtn.addEventListener('click', toggleAppTokenVisibility);
+    }
+
+    // Base配置输入变化时自动生成嵌入代码
+    const baseInputs = ['baseAppToken', 'baseUrl', 'embedBlockId'];
+    baseInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('input', generateEmbedCode);
+            input.addEventListener('change', generateEmbedCode);
+        }
+    });
+
     // 添加新员工按钮
     const addEmployeeBtn = document.getElementById('addEmployeeBtn');
     if (addEmployeeBtn) {
@@ -378,15 +415,17 @@ function bindConfigEvents() {
 
 // 修复：绑定权重滑块和输入框同步事件
 function bindWeightSliders() {
+    console.log('🔧 开始绑定权重滑块同步事件...');
+
     // 定义所有权重配置项
     const weightConfigs = [
-        { slider: 'weightBasic', input: 'weightBasicInput' },
-        { slider: 'weightOptimization', input: 'weightOptimizationInput' },
-        { slider: 'weightQuality', input: 'weightQualityInput' },
-        { slider: 'weightTeam', input: 'weightTeamInput' },
-        { slider: 'weightOKR', input: 'weightOKRInput' },
-        { slider: 'weightRelevance', input: 'weightRelevanceInput' },
-        { slider: 'weightContribution', input: 'weightContributionInput' }
+        { slider: 'weightBasic', input: 'weightBasicInput', name: '入门培训' },
+        { slider: 'weightOptimization', input: 'weightOptimizationInput', name: '优化使用' },
+        { slider: 'weightQuality', input: 'weightQualityInput', name: '质量保障' },
+        { slider: 'weightTeam', input: 'weightTeamInput', name: '团队赋能' },
+        { slider: 'weightOKR', input: 'weightOKRInput', name: 'OKR贡献' },
+        { slider: 'weightRelevance', input: 'weightRelevanceInput', name: 'OKR关联度' },
+        { slider: 'weightContribution', input: 'weightContributionInput', name: 'OKR贡献度' }
     ];
 
     // 为每个权重配置项绑定同步事件
@@ -394,9 +433,16 @@ function bindWeightSliders() {
         const slider = document.getElementById(config.slider);
         const input = document.getElementById(config.input);
 
+        console.log(`检查${config.name}: slider=${!!slider}, input=${!!input}`);
+
         if (slider && input) {
+            // 移除旧的事件监听器(如果存在)
+            slider.removeEventListener('input', null);
+            input.removeEventListener('input', null);
+
             // 滑块变化 -> 更新输入框
             slider.addEventListener('input', function() {
+                console.log(`🎚️ ${config.name}滑块变化: ${this.value}`);
                 const value = parseInt(this.value) || 0;
                 input.value = value;
                 updateWeightTotalDisplay();
@@ -404,6 +450,7 @@ function bindWeightSliders() {
 
             // 输入框变化 -> 更新滑块
             input.addEventListener('input', function() {
+                console.log(`✏️ ${config.name}输入框变化: ${this.value}`);
                 let value = parseInt(this.value) || 0;
 
                 // 限制范围0-100
@@ -415,11 +462,13 @@ function bindWeightSliders() {
                 updateWeightTotalDisplay();
             });
 
-            console.log(`已绑定权重同步: ${config.slider} <-> ${config.input}`);
+            console.log(`✅ ${config.name}滑块同步事件已绑定`);
         } else {
-            console.warn(`未找到权重元素: ${config.slider} 或 ${config.input}`);
+            console.error(`❌ ${config.name}元素未找到: slider=${!!slider}, input=${!!input}`);
         }
     });
+
+    console.log('✅ 权重滑块同步事件绑定完成');
 }
 
 // 修复：更新权重总和显示
@@ -883,6 +932,338 @@ function isValidEmail(email) {
 function isValidPhone(phone) {
     const phoneRegex = /^1[3-9]\d{9}$/;
     return phoneRegex.test(phone);
+}
+
+// ========== 飞书Base配置相关函数 ==========
+
+// 保存Base配置
+function saveBaseConfig() {
+    try {
+        const baseConfig = {
+            appToken: document.getElementById('baseAppToken')?.value || '',
+            baseUrl: document.getElementById('baseUrl')?.value || '',
+            employeeTableId: document.getElementById('employeeTableId')?.value || '',
+            trainingTableId: document.getElementById('trainingTableId')?.value || '',
+            trainingScoreTableId: document.getElementById('trainingScoreTableId')?.value || '',
+            applicationScoreTableId: document.getElementById('applicationScoreTableId')?.value || '',
+            scoreConfigTableId: document.getElementById('scoreConfigTableId')?.value || '',
+            embedBlockId: document.getElementById('embedBlockId')?.value || '',
+            updatedAt: new Date().toISOString()
+        };
+
+        // 验证必填字段
+        if (!baseConfig.appToken) {
+            AITrainingUtils.showAlert('请输入App Token', 'warning');
+            return;
+        }
+
+        if (!baseConfig.baseUrl) {
+            AITrainingUtils.showAlert('请输入Base URL', 'warning');
+            return;
+        }
+
+        // 保存到本地存储
+        AITrainingUtils.saveToLocalStorage('feishuBaseConfig', baseConfig);
+
+        // 更新全局配置
+        if (typeof FEISHU_BASE_CONFIG !== 'undefined') {
+            FEISHU_BASE_CONFIG.app_token = baseConfig.appToken;
+            if (baseConfig.employeeTableId) {
+                FEISHU_BASE_CONFIG.tables.employees = baseConfig.employeeTableId;
+            }
+            if (baseConfig.trainingTableId) {
+                FEISHU_BASE_CONFIG.tables.trainings = baseConfig.trainingTableId;
+            }
+            if (baseConfig.trainingScoreTableId) {
+                FEISHU_BASE_CONFIG.tables.training_scores = baseConfig.trainingScoreTableId;
+            }
+            if (baseConfig.applicationScoreTableId) {
+                FEISHU_BASE_CONFIG.tables.application_scores = baseConfig.applicationScoreTableId;
+            }
+            if (baseConfig.scoreConfigTableId) {
+                FEISHU_BASE_CONFIG.tables.score_configs = baseConfig.scoreConfigTableId;
+            }
+        }
+
+        // 生成嵌入代码
+        generateEmbedCode();
+
+        AITrainingUtils.showAlert('Base配置已保存成功！', 'success');
+        console.log('Base配置已保存:', baseConfig);
+
+        // 更新配置状态
+        updateBaseConfigStatus(true);
+
+    } catch (error) {
+        console.error('保存Base配置失败:', error);
+        AITrainingUtils.showAlert('保存失败: ' + error.message, 'error');
+    }
+}
+
+// 清空Base配置
+function clearBaseConfig() {
+    if (!confirm('确定要清空Base配置吗？')) return;
+
+    try {
+        // 清空输入框
+        document.getElementById('baseAppToken').value = '';
+        document.getElementById('baseUrl').value = '';
+        document.getElementById('employeeTableId').value = '';
+        document.getElementById('trainingTableId').value = '';
+        document.getElementById('trainingScoreTableId').value = '';
+        document.getElementById('applicationScoreTableId').value = '';
+        document.getElementById('scoreConfigTableId').value = '';
+        document.getElementById('embedBlockId').value = '';
+
+        // 清空本地存储
+        localStorage.removeItem('feishuBaseConfig');
+
+        // 重置嵌入代码
+        document.getElementById('embedCode').value = getDefaultEmbedCode();
+
+        AITrainingUtils.showAlert('Base配置已清空', 'success');
+        updateBaseConfigStatus(false);
+
+    } catch (error) {
+        console.error('清空Base配置失败:', error);
+        AITrainingUtils.showAlert('清空失败: ' + error.message, 'error');
+    }
+}
+
+// 加载Base配置
+function loadBaseConfig() {
+    try {
+        const savedConfig = AITrainingUtils.loadFromLocalStorage('feishuBaseConfig', null);
+
+        if (savedConfig) {
+            // 填充表单
+            if (document.getElementById('baseAppToken')) {
+                document.getElementById('baseAppToken').value = savedConfig.appToken || '';
+            }
+            if (document.getElementById('baseUrl')) {
+                document.getElementById('baseUrl').value = savedConfig.baseUrl || '';
+            }
+            if (document.getElementById('employeeTableId')) {
+                document.getElementById('employeeTableId').value = savedConfig.employeeTableId || '';
+            }
+            if (document.getElementById('trainingTableId')) {
+                document.getElementById('trainingTableId').value = savedConfig.trainingTableId || '';
+            }
+            if (document.getElementById('trainingScoreTableId')) {
+                document.getElementById('trainingScoreTableId').value = savedConfig.trainingScoreTableId || '';
+            }
+            if (document.getElementById('applicationScoreTableId')) {
+                document.getElementById('applicationScoreTableId').value = savedConfig.applicationScoreTableId || '';
+            }
+            if (document.getElementById('scoreConfigTableId')) {
+                document.getElementById('scoreConfigTableId').value = savedConfig.scoreConfigTableId || '';
+            }
+            if (document.getElementById('embedBlockId')) {
+                document.getElementById('embedBlockId').value = savedConfig.embedBlockId || '';
+            }
+
+            console.log('Base配置已加载:', savedConfig);
+            updateBaseConfigStatus(true);
+
+            // 生成嵌入代码
+            generateEmbedCode();
+
+            return savedConfig;
+        } else {
+            // 使用默认配置
+            console.log('未找到保存的Base配置，使用默认值');
+            generateEmbedCode();
+            return null;
+        }
+    } catch (error) {
+        console.error('加载Base配置失败:', error);
+        return null;
+    }
+}
+
+// 生成嵌入代码
+function generateEmbedCode() {
+    try {
+        const baseUrl = document.getElementById('baseUrl')?.value || 'https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc';
+        const embedBlockId = document.getElementById('embedBlockId')?.value || '';
+
+        let embedUrl = '';
+        if (embedBlockId) {
+            // 使用指定的Block ID
+            embedUrl = `${baseUrl}/embed?blockId=${embedBlockId}`;
+        } else {
+            // 使用默认的嵌入格式
+            embedUrl = `${baseUrl}/embed`;
+        }
+
+        const embedCode = `<iframe
+  src="${embedUrl}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  scrolling="auto">
+</iframe>`;
+
+        const embedCodeElement = document.getElementById('embedCode');
+        if (embedCodeElement) {
+            embedCodeElement.value = embedCode;
+        }
+
+        console.log('嵌入代码已生成:', embedCode);
+
+        // 同时保存到本地存储，供其他页面使用
+        const baseConfig = {
+            embedUrl: embedUrl,
+            embedCode: embedCode,
+            baseUrl: baseUrl,
+            updatedAt: new Date().toISOString()
+        };
+        AITrainingUtils.saveToLocalStorage('feishuBaseEmbed', baseConfig);
+
+        return embedCode;
+
+    } catch (error) {
+        console.error('生成嵌入代码失败:', error);
+        return '';
+    }
+}
+
+// 获取默认嵌入代码
+function getDefaultEmbedCode() {
+    return `<iframe
+  src="https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc/embed"
+  width="100%"
+  height="600"
+  frameborder="0"
+  scrolling="auto">
+</iframe>`;
+}
+
+// 测试Base连接
+async function testBaseConnection() {
+    const testResultDiv = document.getElementById('testResult');
+    const syncDataBtn = document.getElementById('syncDataBtn');
+
+    if (!testResultDiv) {
+        console.error('找不到测试结果显示区域');
+        return;
+    }
+
+    // 显示测试中状态
+    testResultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>正在测试连接...</div>';
+
+    try {
+        const appToken = document.getElementById('baseAppToken')?.value || '';
+        const baseUrl = document.getElementById('baseUrl')?.value || '';
+
+        if (!appToken || !baseUrl) {
+            throw new Error('请先填写App Token和Base URL');
+        }
+
+        // 检查是否在飞书环境中
+        if (typeof lark !== 'undefined' && lark) {
+            // 飞书环境：尝试使用SDK
+            try {
+                if (typeof FeishuBase !== 'undefined') {
+                    await FeishuBase.initialize();
+
+                    if (FeishuBase.client.isInitialized) {
+                        // 测试加载员工数据
+                        const employees = await FeishuBase.loadEmployees();
+
+                        testResultDiv.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>连接成功！Base: ${appToken}，加载了 ${employees.length} 条员工记录</div>`;
+
+                        // 启用同步数据按钮
+                        if (syncDataBtn) {
+                            syncDataBtn.disabled = false;
+                        }
+
+                        console.log('飞书Base连接测试成功');
+                    } else {
+                        throw new Error('飞书Base客户端初始化失败');
+                    }
+                } else {
+                    throw new Error('FeishuBase对象未找到');
+                }
+            } catch (sdkError) {
+                console.warn('飞书SDK测试失败:', sdkError);
+                throw new Error(`飞书环境检测正常，但Base连接失败: ${sdkError.message}`);
+            }
+        } else {
+            // 非飞书环境：使用模拟验证
+            console.log('非飞书环境，使用模拟验证');
+
+            // 验证URL格式
+            const urlPattern = /feishu\.cn\/base\/([A-Za-z0-9]+)/;
+            const match = baseUrl.match(urlPattern);
+
+            if (match && match[1] === appToken) {
+                testResultDiv.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>本地模式验证通过：Base配置正确（${appToken}），但需要飞书环境才能连接真实数据</div>`;
+
+                // 在本地模式下也启用同步按钮（使用模拟数据）
+                if (syncDataBtn) {
+                    syncDataBtn.disabled = false;
+                }
+            } else if (match) {
+                testResultDiv.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>注意：URL中的Token(${match[1]})与App Token(${appToken})不一致</div>`;
+            } else {
+                throw new Error('Base URL格式不正确，应该是：https://xxx.feishu.cn/base/APP_TOKEN');
+            }
+        }
+
+    } catch (error) {
+        console.error('Base连接测试失败:', error);
+        testResultDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>连接失败: ${error.message}</div>`;
+
+        // 禁用同步数据按钮
+        if (syncDataBtn) {
+            syncDataBtn.disabled = true;
+        }
+    }
+}
+
+// 切换App Token显示/隐藏
+function toggleAppTokenVisibility() {
+    const input = document.getElementById('baseAppToken');
+    const button = document.getElementById('toggleAppToken');
+    const icon = button.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+// 更新Base配置状态
+function updateBaseConfigStatus(isConfigured) {
+    const statusElement = document.getElementById('baseStatusDetail');
+    const iconElement = document.getElementById('baseConnectedIcon');
+    const disconnectedIcon = document.getElementById('baseDisconnectedIcon');
+
+    if (isConfigured) {
+        if (statusElement) {
+            statusElement.textContent = 'Base已配置，可以开始数据同步';
+        }
+        if (iconElement) {
+            iconElement.style.display = 'inline-block';
+        }
+        if (disconnectedIcon) {
+            disconnectedIcon.style.display = 'none';
+        }
+    } else {
+        if (statusElement) {
+            statusElement.textContent = '请配置Base信息以启用数据同步';
+        }
+        if (iconElement) {
+            iconElement.style.display = 'none';
+        }
+        if (disconnectedIcon) {
+            disconnectedIcon.style.display = 'inline-block';
+        }
+    }
 }
 
 console.log('系统配置逻辑已加载');
