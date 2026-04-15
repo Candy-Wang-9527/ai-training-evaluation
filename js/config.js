@@ -316,6 +316,25 @@ function bindConfigEvents() {
         });
     }
 
+    // 测试后端API按钮
+    const testBackendAPIBtn = document.getElementById('testBackendAPIBtn');
+    if (testBackendAPIBtn) {
+        testBackendAPIBtn.addEventListener('click', async function() {
+            if (typeof BackendAPIDiagnostic !== 'undefined') {
+                // 显示诊断输出区域
+                const diagnosticOutputRow = document.getElementById('diagnosticOutputRow');
+                if (diagnosticOutputRow) {
+                    diagnosticOutputRow.style.display = 'block';
+                }
+
+                AITrainingUtils.showAlert('正在测试后端API，请查看下方诊断输出...', 'info');
+                await BackendAPIDiagnostic.runFullDiagnostic();
+            } else {
+                AITrainingUtils.showAlert('后端API诊断工具未加载', 'warning');
+            }
+        });
+    }
+
     // 修复：绑定权重滑块和输入框同步事件
     bindWeightSliders();
 

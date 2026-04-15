@@ -26,7 +26,8 @@
       "Bash(powershell.exe -Command \"vercel login\")",
       "Bash(cp app.js app.js.backup)",
       "Bash(cp app-fixed.js app.js)",
-      "Bash(rm app-fixed.js)"
+      "Bash(rm app-fixed.js)",
+      "Bash(python -c ' *)"
     ],
     "additionalDirectories": [
       "D:\\software\\ai_training_evaluation\\.claude"
