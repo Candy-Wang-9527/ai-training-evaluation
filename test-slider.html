@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滑块同步测试</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>滑块同步测试</h2>
+
+        <div class="card">
+            <div class="card-body">
+                <h5>测试1: 基本滑块同步</h5>
+                <div class="mb-3">
+                    <label class="form-label">滑块和输入框应该同步</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="range" class="form-range" style="width: 200px;" min="0" max="100" value="0" id="testSlider">
+                        <input type="number" class="form-control" style="width: 100px;" min="0" max="100" value="0" id="testInput">
+                        <span id="testDisplay">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5>测试2: 多个滑块</h5>
+                <div id="sliderContainer">
+                    <!-- 滑块将由JavaScript生成 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5>控制台日志</h5>
+                <div id="consoleLog" class="bg-dark text-light p-3" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                    等待操作...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 重写console.log以显示在页面上
+        const originalLog = console.log;
+        const logDiv = document.getElementById('consoleLog');
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+            logDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM加载完成');
+
+            // 测试1: 基本滑块同步
+            const testSlider = document.getElementById('testSlider');
+            const testInput = document.getElementById('testInput');
+            const testDisplay = document.getElementById('testDisplay');
+
+            console.log(`测试1元素: slider=${!!testSlider}, input=${!!testInput}, display=${!!testDisplay}`);
+
+            if (testSlider && testInput && testDisplay) {
+                testSlider.addEventListener('input', function() {
+                    console.log(`🎚️ 滑块变化: ${this.value}`);
+                    testInput.value = this.value;
+                    testDisplay.textContent = this.value;
+                });
+
+                testInput.addEventListener('input', function() {
+                    console.log(`✏️ 输入框变化: ${this.value}`);
+                    let value = parseInt(this.value) || 0;
+                    if (value < 0) value = 0;
+                    if (value > 100) value = 100;
+                    this.value = value;
+                    testSlider.value = value;
+                    testDisplay.textContent = value;
+                });
+
+                console.log('✅ 测试1事件监听器已绑定');
+            }
+
+            // 测试2: 多个滑块(模拟app.js的逻辑)
+            const container = document.getElementById('sliderContainer');
+            for (let i = 1; i <= 7; i++) {
+                const div = document.createElement('div');
+                div.className = 'mb-3';
+                div.innerHTML = `
+                    <label class="form-label">评分${i}</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="range" class="form-range" style="width: 200px;" min="0" max="100" value="0" id="score${i}Slider">
+                        <input type="number" class="form-control" style="width: 100px;" min="0" max="100" value="0" id="score${i}Input">
+                        <span id="score${i}Display">0</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+
+            console.log('✅ 生成了7个评分滑块');
+
+            // 绑定事件监听器(完全模拟app.js的逻辑)
+            for (let i = 1; i <= 7; i++) {
+                const slider = document.getElementById(`score${i}Slider`);
+                const input = document.getElementById(`score${i}Input`);
+                const display = document.getElementById(`score${i}Display`);
+
+                console.log(`检查评分${i}: slider=${!!slider}, input=${!!input}, display=${!!display}`);
+
+                if (slider && input && display) {
+                    slider.addEventListener('input', function() {
+                        console.log(`🎚️ 评分${i}滑块变化: ${this.value}`);
+                        const value = parseInt(this.value);
+                        input.value = value;
+                        display.textContent = value;
+                    });
+
+                    input.addEventListener('input', function() {
+                        console.log(`✏️ 评分${i}输入框变化: ${this.value}`);
+                        let value = parseInt(this.value) || 0;
+                        if (value < 0) value = 0;
+                        if (value > 100) value = 100;
+                        this.value = value;
+                        slider.value = value;
+                        display.textContent = value;
+                    });
+
+                    console.log(`✅ 评分${i}事件监听器已绑定`);
+                } else {
+                    console.error(`❌ 评分${i}元素未找到`);
+                }
+            }
+
+            console.log('✅ 所有事件监听器绑定完成');
+        });
+    </script>
+</body>
+</html>
