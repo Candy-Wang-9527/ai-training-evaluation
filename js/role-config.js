@@ -568,14 +568,21 @@ window.RoleConfig = {
     // 实例方法
     initialize: async () => await roleConfigManager.initializeCurrentUser(),
     getUserRole: (userInfo) => roleConfigManager.getUserRole(userInfo),
-    hasPermission: (role, permission) => roleConfigManager.hasPermission(role, permission),
+    getUserRoles: (userInfo) => roleConfigManager.getUserRoles(userInfo),
+    hasRole: (userInfo, role) => roleConfigManager.hasRole(userInfo, role),
+    hasAnyRole: (userInfo, roles) => roleConfigManager.hasAnyRole(userInfo, roles),
+    hasAllRoles: (userInfo, roles) => roleConfigManager.hasAllRoles(userInfo, roles),
+    hasPermission: (userInfo, permission) => roleConfigManager.hasPermission(userInfo, permission),
+    roleHasPermission: (role, permission) => roleConfigManager.roleHasPermission(role, permission),
     getRoleConfig: (role) => roleConfigManager.getRoleConfig(role),
     getAllRoleConfigs: () => roleConfigManager.getAllRoleConfigs(),
     getAllUserRoleMappings: () => roleConfigManager.getAllUserRoleMappings(),
 
-    // 角色映射管理
+    // 角色映射管理（支持多角色）
     addUserRoleMapping: (identifier, role, type) => roleConfigManager.addUserRoleMapping(identifier, role, type),
+    setUserRoles: (identifier, roles, type) => roleConfigManager.setUserRoles(identifier, roles, type),
     removeUserRoleMapping: (identifier, type) => roleConfigManager.removeUserRoleMapping(identifier, type),
+    removeUserRoleFromUser: (identifier, role, type) => roleConfigManager.removeUserRoleFromUser(identifier, role, type),
 
     // 配置导入导出
     exportRoleConfig: () => roleConfigManager.exportRoleConfig(),

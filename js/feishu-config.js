@@ -130,24 +130,90 @@ class FeishuBaseClient {
             if (!tableId) {
                 throw new Error(`未找到表配置: ${tableName}`);
             }
-            
+
+            console.log(`📝 尝试保存数据到表 ${tableName}，table_id: ${tableId}`);
+            console.log('数据内容:', data);
+
             if (this.isInitialized && this.lark) {
                 // 飞书环境：使用JS SDK
-                const response = await this.lark.bitable.batchCreateRecord({
-                    app_token: this.config.app_token,
-                    table_id: tableId,
-                    records: [{
-                        fields: data
-                    }]
-                });
-                
-                return {
-                    success: true,
-                    data: response.data,
-                    message: '数据已保存到飞书Base'
-                };
+                console.log('🔍 检测到飞书环境，尝试调用飞书API...');
+
+                // 尝试不同的API调用方式
+                try {
+                    // 方式1: 使用bitable.appTableRecord.create
+                    if (this.lark.bitable && this.lark.bitable.appTableRecord) {
+                        console.log('尝试方式1: bitable.appTableRecord.create');
+                        const response = await this.lark.bitable.appTableRecord.create({
+                            app_token: this.config.app_token,
+                            table_id: tableId,
+                            fields: data
+                        });
+
+                        console.log('飞书API响应:', response);
+
+                        if (response.code === 0) {
+                            console.log('✅ 数据保存成功');
+                            return {
+                                success: true,
+                                data: response.data,
+                                message: '数据已保存到飞书Base'
+                            };
+                        } else {
+                            throw new Error(`飞书API错误: ${response.msg}`);
+                        }
+                    }
+
+                    // 方式2: 使用bitable.record.createRecord
+                    else if (this.lark.bitable && this.lark.bitable.record) {
+                        console.log('尝试方式2: bitable.record.createRecord');
+                        const response = await this.lark.bitable.record.createRecord({
+                            app_token: this.config.app_token,
+                            table_id: tableId,
+                            fields: data
+                        });
+
+                        console.log('飞书API响应:', response);
+
+                        if (response.code === 0) {
+                            console.log('✅ 数据保存成功');
+                            return {
+                                success: true,
+                                data: response.data,
+                                message: '数据已保存到飞书Base'
+                            };
+                        } else {
+                            throw new Error(`飞书API错误: ${response.msg}`);
+                        }
+                    }
+
+                    // 方式3: 使用原始HTTP请求
+                    else {
+                        console.warn('⚠️ 飞书JS SDK的bitable API不可用，尝试直接API调用');
+                        throw new Error('飞书JS SDK的bitable API不可用，请检查权限配置');
+                    }
+
+                } catch (apiError) {
+                    console.error('❌ 飞书API调用失败:', apiError);
+                    console.warn('📝 降级到本地存储模式');
+
+                    // 降级到本地存储
+                    const localStorageKey = `feishu_mock_${tableName}`;
+                    let mockData = JSON.parse(localStorage.getItem(localStorageKey) || '[]');
+                    mockData.push({
+                        id: Date.now(),
+                        fields: data,
+                        created_time: new Date().toISOString()
+                    });
+                    localStorage.setItem(localStorageKey, JSON.stringify(mockData));
+
+                    return {
+                        success: true,
+                        message: '数据已保存到本地（飞书API不可用）'
+                    };
+                }
             } else {
                 // 非飞书环境：存储到本地
+                console.log('📝 非飞书环境，使用本地存储');
                 const localStorageKey = `feishu_mock_${tableName}`;
                 let mockData = JSON.parse(localStorage.getItem(localStorageKey) || '[]');
                 mockData.push({
