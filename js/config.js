@@ -291,6 +291,18 @@ function updateScoreConfigDisplay(scoreConfigs) {
 
 // 绑定配置页面事件
 function bindConfigEvents() {
+    // 运行系统诊断按钮
+    const runDiagnosticBtn = document.getElementById('runDiagnosticBtn');
+    if (runDiagnosticBtn) {
+        runDiagnosticBtn.addEventListener('click', function() {
+            if (typeof SystemDiagnostic !== 'undefined') {
+                SystemDiagnostic.runFullDiagnostic();
+            } else {
+                AITrainingUtils.showAlert('诊断工具未加载', 'warning');
+            }
+        });
+    }
+
     // 修复：绑定权重滑块和输入框同步事件
     bindWeightSliders();
 
