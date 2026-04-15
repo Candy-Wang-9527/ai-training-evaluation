@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git branch *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(git config *)",
+      "Bash(git commit *)",
+      "Bash(node -c js/app.js)",
+      "Bash(node -c js/config.js)",
+      "Bash(git pull *)"
+    ],
+    "additionalDirectories": [
+      "D:\\software\\ai_training_evaluation\\.claude"
     ]
   }
 }

@@ -28,7 +28,7 @@
                 this.renderEmbed(container, savedConfig.embedUrl, options);
             } else {
                 // 使用默认配置
-                const defaultUrl = 'https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc/embed';
+                const defaultUrl = 'https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb/embed';
                 this.renderEmbed(container, defaultUrl, options);
             }
         },
@@ -94,7 +94,7 @@
          * @param {string} baseUrl - Base URL（可选）
          */
         openBase: function(baseUrl) {
-            const url = baseUrl || 'https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc';
+            const url = baseUrl || 'https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb';
             window.open(url, '_blank');
         }
     };

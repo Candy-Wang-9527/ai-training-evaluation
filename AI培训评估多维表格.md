@@ -1,12 +1,10 @@
 # 飞书Base多维表格字段定义文档
 
 **生成日期：** 2026年4月15日  
-**Base应用：** AI培训评估系统_全新  
-**App Token：** MiG6bsjMiaEwAEskaSScC7W8nGb  
-**Base链接：** https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb  
-**版本：** 1.0  
-**创建者：** 王浩  
-**公司：** 兆原数通（北京）数据科技有限公司
+**Base应用：** AI培训评估多维表格  
+**App Token：**      --生成后提供 
+**Base链接：**  --生成后提供 
+
 
 ---
 
@@ -14,17 +12,17 @@
 
 | 表名 | Table ID | 用途 | 记录数量 |
 |------|----------|------|----------|
-| 员工表 | tbl0fkpRKGAaCaPy | 存储员工基本信息 | 4条 |
-| 培训表 | tblShvLC5LCYzzfV | 存储培训活动信息 | 1条 |
-| 培训评分表 | tblxLgRDWMSz8xZo | 存储培训部分评分 | 3条 |
-| 应用评分表 | tblNOBTibciFt8EC | 存储应用部分评分 | 3条 |
-| 评分配置表 | tblJuSwhGEr94Pbu | 存储评分维度和权重配置 | 7条 |
+| 员工表 | tblIVqXEzmZdKxjI | 存储员工基本信息 | 4条 |
+| 培训表 | tblCfjFzfiZ2yvRr | 存储培训活动信息 | 0条 |
+| 培训评分表 | tblg3G6KPSAhBHNw | 存储培训部分评分 | 0条 |
+| 应用评分表 | tblHwmO8RAe9KBIm | 存储应用部分评分 | 0条 |
+| 评分配置表 | tblaZKWjxym9YnLJ | 存储评分维度和权重配置 | 7条 |
 
 ---
 
 ## 👔 1. 员工表 (employees)
 
-**Table ID：** `tbl0fkpRKGAaCaPy`  
+**Table ID：** ` --生成后提供 `  
 **用途：** 存储员工基本信息，用于评分时选择被评估员工
 
 ### 字段定义
@@ -47,7 +45,7 @@
 
 ## 📚 2. 培训表 (trainings)
 
-**Table ID：** `tblShvLC5LCYzzfV`  
+**Table ID：** ` --生成后提供 `  
 **用途：** 存储培训活动的基础信息
 
 ### 字段定义
@@ -81,7 +79,7 @@
 
 ## 📝 3. 培训评分表 (training_scores)
 
-**Table ID：** `tblxLgRDWMSz8xZo`  
+**Table ID：** ` --生成后提供 `  
 **用途：** 存储员工培训部分的评分（5个维度）
 
 ### 字段定义
@@ -123,7 +121,7 @@
 
 ## 🚀 4. 应用评分表 (application_scores)
 
-**Table ID：** `tblNOBTibciFt8EC`  
+**Table ID：** ` --生成后提供 `  
 **用途：** 存储员工AI应用部分的评分（2个维度）
 
 ### 字段定义
@@ -160,7 +158,7 @@
 
 ## ⚙️ 5. 评分配置表 (score_configs)
 
-**Table ID：** `tblJuSwhGEr94Pbu`  
+**Table ID：** `--生成后提供`  
 **用途：** 存储评分维度的配置信息（权重、描述等）
 
 ### 字段定义
@@ -249,7 +247,6 @@
 
 | 版本 | 日期 | 修改内容 | 修改人 |
 |------|------|----------|--------|
-| v1.1 | 2026-04-15 | 更新为新的Base配置 (MiG6bsjMiaEwAEskaSScC7W8nGb)，更新所有表格ID | 王浩 |
 | v1.0 | 2026-04-15 | 初始版本，定义5个表格的字段结构 | 系统自动生成 |
 
 ---
@@ -261,11 +258,7 @@
 **最后更新：** 2026年4月15日
 
 **注意事项：**
-1. 字段ID (如 fldjZ5ZkUQ) 是飞书Base自动生成的，请勿随意修改
+1. 字段ID (如 Table ID) 是飞书Base自动生成的，完成多维表格创建后请同意提供
 2. 如需新增字段，请在飞书Base中直接添加，然后更新本文档
 3. 权重调整会影响评分计算，请谨慎操作
 4. 建议定期备份重要数据
-
----
-
-*本文档由AI培训评估系统自动生成，基于飞书Base配置文件 feishu-config.js*

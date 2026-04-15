@@ -3,15 +3,16 @@
 
 const FEISHU_BASE_CONFIG = {
     // Base应用信息
-    app_token: "GA1QbgqTzaHaVIsIKWDcFI79nuc",
-    
+    app_token: "MiG6bsjMiaEwAEskaSScC7W8nGb",
+    base_url: "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb",
+
     // 表格ID（根据您的Base结构）
     tables: {
-        employees: "tblIVqXEzmZdKxjI",           // 员工表
-        trainings: "tblCfjFzfiZ2yvRr",          // 培训表
-        training_scores: "tblg3G6KPSAhBHNw",    // 培训评分表
-        application_scores: "tblHwmO8RAe9KBIm", // 应用评分表
-        score_configs: "tblaZKWjxym9YnLJ"       // 评分配置表
+        employees: "tbl0fkpRKGAaCaPy",           // 员工表
+        trainings: "tblShvLC5LCYzzfV",          // 培训表
+        training_scores: "tblxLgRDWMSz8xZo",    // 培训评分表
+        application_scores: "tblNOBTibciFt8EC", // 应用评分表
+        score_configs: "tblJuSwhGEr94Pbu"       // 评分配置表
     },
     
     // 字段映射配置（根据Base表格的实际字段）
