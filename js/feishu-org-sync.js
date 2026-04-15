@@ -93,12 +93,43 @@
          * 从飞书API获取部门列表
          */
         async fetchDepartmentsFromAPI() {
-            // 如果在飞书环境中，使用真实API
+            // 优先使用后端API（不依赖飞书环境）
+            if (window.APIClient) {
+                try {
+                    console.log('🔍 通过后端API获取部门列表...');
+
+                    const response = await window.APIClient.getDepartments('0');
+
+                    console.log('后端API响应:', response);
+
+                    if (response.success && response.data) {
+                        console.log(`✅ 成功获取 ${response.data.length} 个部门`);
+                        return response.data.map(dept => ({
+                            id: dept.department_id,
+                            name: dept.name,
+                            parent_id: dept.parent_department_id,
+                            leader_id: dept.leader_user_id,
+                            status: dept.status,
+                            type: this.getDepartmentType(dept)
+                        }));
+                    } else {
+                        console.warn('后端API返回错误:', response);
+                        throw new Error(response.message || '获取部门失败');
+                    }
+                } catch (error) {
+                    console.warn('❌ 后端API调用失败，尝试前端SDK:', error);
+                    console.warn('错误详情:', error.message);
+                    // 继续尝试前端SDK
+                }
+            } else {
+                console.warn('⚠️ 后端APIClient未加载');
+            }
+
+            // 如果在飞书环境中，尝试使用前端SDK
             if (this.lark && this.lark.contact) {
                 try {
-                    console.log('🔍 调用飞书API获取部门列表...');
+                    console.log('🔍 尝试使用飞书前端SDK获取部门列表...');
 
-                    // 使用飞书JS SDK的contact API
                     const response = await this.lark.contact.department.list({
                         parent_department_id: '0',
                         user_id_type: 'user_id'
@@ -125,7 +156,7 @@
                     console.warn('错误详情:', error.message, error.code);
                 }
             } else {
-                console.warn('⚠️ 未检测到飞书JS SDK的contact API，使用模拟数据');
+                console.warn('⚠️ 未检测到飞书JS SDK的contact API');
             }
 
             // 使用模拟数据（开发环境）
@@ -175,12 +206,46 @@
          * 从飞书API获取员工列表
          */
         async fetchEmployeesFromAPI() {
-            // 如果在飞书环境中，使用真实API
+            // 优先使用后端API（不依赖飞书环境）
+            if (window.APIClient) {
+                try {
+                    console.log('🔍 通过后端API获取员工列表...');
+
+                    const response = await window.APIClient.getUsers();
+
+                    console.log('后端API响应:', response);
+
+                    if (response.success && response.data) {
+                        console.log(`✅ 成功获取 ${response.data.length} 名员工`);
+                        return response.data.map(user => ({
+                            user_id: user.user_id,
+                            name: user.name,
+                            en_name: user.en_name,
+                            email: user.email,
+                            mobile: user.mobile,
+                            department_ids: user.department_ids || [],
+                            avatar: user.avatar?.avatar_72,
+                            status: user.status,
+                            employee_type: this.getEmployeeType(user)
+                        }));
+                    } else {
+                        console.warn('后端API返回错误:', response);
+                        throw new Error(response.message || '获取员工失败');
+                    }
+                } catch (error) {
+                    console.warn('❌ 后端API调用失败，尝试前端SDK:', error);
+                    console.warn('错误详情:', error.message);
+                    // 继续尝试前端SDK
+                }
+            } else {
+                console.warn('⚠️ 后端APIClient未加载');
+            }
+
+            // 如果在飞书环境中，尝试使用前端SDK
             if (this.lark && this.lark.contact) {
                 try {
-                    console.log('🔍 调用飞书API获取员工列表...');
+                    console.log('🔍 尝试使用飞书前端SDK获取员工列表...');
 
-                    // 使用飞书JS SDK的contact API
                     const response = await this.lark.contact.user.list({
                         department_id_type: 'department_id',
                         user_id_type: 'user_id'
@@ -210,7 +275,7 @@
                     console.warn('错误详情:', error.message, error.code);
                 }
             } else {
-                console.warn('⚠️ 未检测到飞书JS SDK的contact API，使用模拟数据');
+                console.warn('⚠️ 未检测到飞书JS SDK的contact API');
             }
 
             // 使用模拟数据（开发环境）

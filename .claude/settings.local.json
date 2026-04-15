@@ -20,7 +20,10 @@
       "Bash(ls -la *.html)",
       "Bash(grep -E \"\\\\.json$|\\\\.txt$|\\\\.md$\")",
       "Bash(ls -la *.md)",
-      "Bash(ls -la *.md *.json *.html *.sh)"
+      "Bash(ls -la *.md *.json *.html *.sh)",
+      "Bash(vercel --prod)",
+      "Bash(powershell.exe -Command \"vercel --prod\")",
+      "Bash(powershell.exe -Command \"vercel login\")"
     ],
     "additionalDirectories": [
       "D:\\software\\ai_training_evaluation\\.claude"
