@@ -15,19 +15,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function initializeApp() {
     console.log('初始化AI培训评估系统...');
 
+    // 初始化角色系统
+    await initializeRoleSystem();
+
     // 设置当前日期
     const today = AITrainingUtils.getTodayString();
     document.getElementById('evaluationDate').value = today;
-    
+
     // 初始化飞书Base
     await initializeFeishuBase();
-    
+
     // 加载员工数据
     await loadEmployees();
-    
+
     // 加载评分配置
     await loadScoreConfig();
-    
+
     // 初始化滑块和输入框同步（必须在绑定事件之前）
     initializeScoreInputs();
 
@@ -38,6 +41,75 @@ async function initializeApp() {
     updateScorePreview();
 
     console.log('系统初始化完成');
+}
+
+// 初始化角色系统
+async function initializeRoleSystem() {
+    try {
+        console.log('🔐 初始化角色系统...');
+
+        if (typeof window.RoleConfig !== 'undefined') {
+            const initResult = await window.RoleConfig.initialize();
+
+            // 更新导航栏显示用户信息
+            if (initResult.user) {
+                const currentUserElement = document.getElementById('currentUser');
+                if (currentUserElement) {
+                    currentUserElement.textContent = initResult.user.name;
+                }
+
+                // 更新评委名称显示
+                const judgeNameElement = document.getElementById('judgeName');
+                const judgeDeptElement = document.getElementById('judgeDept');
+                if (judgeNameElement) {
+                    judgeNameElement.textContent = initResult.user.name;
+                }
+                if (judgeDeptElement && initResult.user.department) {
+                    judgeDeptElement.textContent = `(${initResult.user.department})`;
+                }
+            }
+
+            // 显示用户的所有角色
+            if (initResult.role && window.RoleConfig) {
+                const roles = window.RoleConfig.getUserRoles(initResult.user);
+                const roleBadge = document.getElementById('roleBadge');
+
+                if (roleBadge && roles.length > 0) {
+                    // 如果有多个角色，显示所有角色
+                    if (roles.length > 1) {
+                        const roleNames = roles.map(role => {
+                            const config = window.RoleConfig.getRoleConfig(role);
+                            return config ? config.name : role;
+                        }).join('、');
+                        roleBadge.textContent = roleNames;
+                        roleBadge.className = 'badge bg-primary ms-2';
+                    } else {
+                        // 单个角色
+                        const roleConfig = window.RoleConfig.getRoleConfig(roles[0]);
+                        if (roleConfig) {
+                            roleBadge.textContent = roleConfig.name;
+                            roleBadge.className = `badge ms-2 ${roleConfig.color}`;
+                        }
+                    }
+                }
+
+                console.log('✅ 角色系统初始化成功');
+                console.log('👤 当前用户:', initResult.user);
+                console.log('🔑 用户角色:', roles);
+            }
+
+        } else {
+            console.warn('⚠️ 角色配置模块未加载');
+        }
+
+    } catch (error) {
+        console.error('❌ 角色系统初始化失败:', error);
+        // 失败时使用默认值
+        const currentUserElement = document.getElementById('currentUser');
+        if (currentUserElement) {
+            currentUserElement.textContent = '访客';
+        }
+    }
 }
 
 // 初始化飞书Base
