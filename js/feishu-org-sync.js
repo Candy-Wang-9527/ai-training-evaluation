@@ -89,12 +89,18 @@
             // 如果在飞书环境中，使用真实API
             if (this.lark && this.lark.contact) {
                 try {
+                    console.log('🔍 调用飞书API获取部门列表...');
+
+                    // 使用飞书JS SDK的contact API
                     const response = await this.lark.contact.department.list({
                         parent_department_id: '0',
                         user_id_type: 'user_id'
                     });
 
+                    console.log('飞书API响应:', response);
+
                     if (response.code === 0 && response.data) {
+                        console.log(`✅ 成功获取 ${response.data.items.length} 个部门`);
                         return response.data.items.map(dept => ({
                             id: dept.department_id,
                             name: dept.name,
@@ -103,13 +109,20 @@
                             status: dept.status,
                             type: this.getDepartmentType(dept)
                         }));
+                    } else {
+                        console.warn('飞书API返回错误:', response);
+                        throw new Error(`飞书API错误: ${response.msg}`);
                     }
                 } catch (error) {
-                    console.warn('飞书API调用失败，使用模拟数据:', error);
+                    console.warn('❌ 飞书API调用失败，使用模拟数据:', error);
+                    console.warn('错误详情:', error.message, error.code);
                 }
+            } else {
+                console.warn('⚠️ 未检测到飞书JS SDK的contact API，使用模拟数据');
             }
 
             // 使用模拟数据（开发环境）
+            console.log('📝 使用模拟部门数据');
             return this.getMockDepartments();
         }
 
@@ -158,12 +171,18 @@
             // 如果在飞书环境中，使用真实API
             if (this.lark && this.lark.contact) {
                 try {
+                    console.log('🔍 调用飞书API获取员工列表...');
+
+                    // 使用飞书JS SDK的contact API
                     const response = await this.lark.contact.user.list({
                         department_id_type: 'department_id',
                         user_id_type: 'user_id'
                     });
 
+                    console.log('飞书API响应:', response);
+
                     if (response.code === 0 && response.data) {
+                        console.log(`✅ 成功获取 ${response.data.items.length} 名员工`);
                         return response.data.items.map(user => ({
                             user_id: user.user_id,
                             name: user.name,
@@ -175,13 +194,20 @@
                             status: user.status,
                             employee_type: this.getEmployeeType(user)
                         }));
+                    } else {
+                        console.warn('飞书API返回错误:', response);
+                        throw new Error(`飞书API错误: ${response.msg}`);
                     }
                 } catch (error) {
-                    console.warn('飞书API调用失败，使用模拟数据:', error);
+                    console.warn('❌ 飞书API调用失败，使用模拟数据:', error);
+                    console.warn('错误详情:', error.message, error.code);
                 }
+            } else {
+                console.warn('⚠️ 未检测到飞书JS SDK的contact API，使用模拟数据');
             }
 
             // 使用模拟数据（开发环境）
+            console.log('📝 使用模拟员工数据');
             return this.getMockEmployees();
         }
 
