@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书应用配置 - AI培训评估系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .status-card {
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .status-success { border-left-color: #28a745; }
+        .status-warning { border-left-color: #ffc107; }
+        .status-error { border-left-color: #dc3545; }
+
+        .check-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-brain me-2"></i>AI培训评估系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-edit me-1"></i>评分
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="training-input.html">
+                            <i class="fas fa-plus-circle me-1"></i>培训录入
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="statistics.html">
+                            <i class="fas fa-chart-bar me-1"></i>统计分析
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="feishu-config.html">
+                            <i class="fas fa-cog me-1"></i>飞书配置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="config.html">
+                            <i class="fas fa-sliders-h me-1"></i>系统配置
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-text ms-3">
+                    <i class="fas fa-user me-1"></i>当前用户：<span id="currentUser">王浩</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-feishu-logo text-primary me-2"></i>飞书应用配置与诊断</h2>
+                <p class="text-muted">配置飞书应用权限，诊断API连接状态，验证系统功能</p>
+            </div>
+        </div>
+
+        <!-- 环境检测 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-search me-2"></i>飞书环境检测</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-container">
+                            <button class="btn btn-primary btn-lg" id="checkEnvBtn">
+                                <i class="fas fa-search me-2"></i>检查飞书环境
+                            </button>
+                            <button class="btn btn-outline-secondary" id="refreshEnvBtn">
+                                <i class="fas fa-sync-alt me-2"></i>重新检查
+                            </button>
+                        </div>
+                        <div id="envCheckResult" class="mt-3">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                点击"检查飞书环境"按钮开始检测...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API测试 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-plug me-2"></i>飞书API测试</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-success" id="testAllAPIBtn">
+                                <i class="fas fa-play me-2"></i>测试所有API
+                            </button>
+                            <button class="btn btn-outline-primary" id="testBitableBtn">
+                                <i class="fas fa-table me-2"></i>测试多维表格
+                            </button>
+                            <button class="btn btn-outline-info" id="testContactBtn">
+                                <i class="fas fa-users me-2"></i>测试通讯录
+                            </button>
+                            <button class="btn btn-outline-warning" id="testPermissionBtn">
+                                <i class="fas fa-key me-2"></i>测试权限
+                            </button>
+                        </div>
+                        <div id="apiTestResult" class="mt-3">
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-info-circle me-2"></i>
+                                点击上方按钮开始API测试...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-terminal me-2"></i>控制台日志</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-container" id="consoleLog">
+                            等待操作...控制台日志将显示在这里...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Base连接测试 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-database me-2"></i>飞书Base连接测试</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Base App Token</label>
+                                    <input type="text" class="form-control" id="baseAppToken" value="GA1QbgqTzaHaVIsIKWDcFI79nuc">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Base URL</label>
+                                    <input type="text" class="form-control" id="baseUrl" value="https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">员工表Table ID</label>
+                                    <input type="text" class="form-control" id="employeeTableId" value="tblIVqXEzmZdKxjI">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary btn-lg" id="testBaseConnectionBtn">
+                                        <i class="fas fa-plug me-2"></i>测试Base连接
+                                    </button>
+                                    <button class="btn btn-success" id="readBaseDataBtn">
+                                        <i class="fas fa-download me-2"></i>读取Base数据
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="openBaseBtn">
+                                        <i class="fas fa-external-link-alt me-2"></i>打开飞书Base
+                                    </button>
+                                </div>
+                                <div id="baseTestResult" class="mt-3">
+                                    <div class="alert alert-secondary">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        等待测试...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速修复 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-wrench me-2"></i>快速修复工具</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-danger w-100" id="clearCacheBtn">
+                                    <i class="fas fa-trash me-2"></i>清除所有缓存
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-warning w-100" id="reloadScriptsBtn">
+                                    <i class="fas fa-redo me-2"></i>重新加载脚本
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-info w-100" id="fullDiagnosticBtn">
+                                    <i class="fas fa-stethoscope me-2"></i>完整诊断
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 权限配置指南 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-book me-2"></i>权限配置快速指南</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-1 me-2"></i>第一步：登录飞书开发者平台</h6>
+                                <p>访问：<a href="https://open.feishu.cn/app" target="_blank">https://open.feishu.cn/app</a></p>
+                                <p>找到您的应用：<strong>AI培训评估系统</strong> (App ID: cli_a954a77f4bb95bca)</p>
+
+                                <h6 class="mt-3"><i class="fas fa-2 me-2"></i>第二步：配置权限套件</h6>
+                                <ol>
+                                    <li>进入"权限管理" → "权限套件"</li>
+                                    <li>点击"创建权限套件"</li>
+                                    <li>添加以下权限：
+                                        <ul>
+                                            <li>✅ 多维表格：查看、评论、编辑、创建</li>
+                                            <li>✅ 通讯录：读取部门信息、读取用户信息、获取用户邮箱</li>
+                                        </ul>
+                                    </li>
+                                    <li>点击"发布"</li>
+                                </ol>
+
+                                <h6 class="mt-3"><i class="fas fa-3 me-2"></i>第三步：分发权限</h6>
+                                <ol>
+                                    <li>在权限套件列表中找到刚创建的套件</li>
+                                    <li>点击"分发"</li>
+                                    <li>选择"整个组织"或特定用户/部门</li>
+                                    <li>确认分发</li>
+                                </ol>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-lightbulb me-2"></i>常见问题解决</h6>
+                                <div class="check-item">
+                                    <strong>Q: 显示"非飞书环境"？</strong><br>
+                                    <small>A: 请确保在飞书工作台中打开应用，或在飞书浏览器插件中打开。</small>
+                                </div>
+                                <div class="check-item">
+                                    <strong>Q: Base连接失败？</strong><br>
+                                    <small>A: 检查App Token是否正确，确认Base应用已发布。</small>
+                                </div>
+                                <div class="check-item">
+                                    <strong>Q: 按钮点击没反应？</strong><br>
+                                    <small>A: 尝试清除缓存、重新加载脚本，或使用"快速修复工具"。</small>
+                                </div>
+                                <div class="check-item">
+                                    <strong>Q: 权限请求失败？</strong><br>
+                                    <small>A: 检查权限套件是否已发布和分发，等待1-5分钟后重试。</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                兆原数通（北京）数据科技有限公司 &copy; 2026
+                <span class="mx-2">|</span>
+                AI培训评估系统 飞书配置页面
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript库 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 飞书JS SDK -->
+    <script src="https://lf1-cdn-tos.bytegoofy.com/obj/eden-cn/ljhwzqkjuhp/lark/js-sdk/lark-jsapi.min.js"></script>
+
+    <!-- 系统脚本 -->
+    <script src="js/feishu-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/diagnostic.js"></script>
+    <script src="js/feishu-api-tester.js"></script>
+
+    <script>
+        // 飞书配置页面专用逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 飞书配置页面已加载');
+
+            // 重定向控制台日志到页面显示
+            const consoleLog = document.getElementById('consoleLog');
+            if (consoleLog) {
+                const originalLog = console.log;
+                const originalWarn = console.warn;
+                const originalError = console.error;
+
+                const addToLog = (message, type = 'log') => {
+                    const time = new Date().toLocaleTimeString();
+                    const color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#feca57' : '#00ff00';
+                    consoleLog.innerHTML += `<div style="color: ${color}">[${time}] ${message}</div>`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                };
+
+                console.log = function(...args) {
+                    originalLog.apply(console, args);
+                    addToLog(args.join(' '));
+                };
+
+                console.warn = function(...args) {
+                    originalWarn.apply(console, args);
+                    addToLog(args.join(' '), 'warn');
+                };
+
+                console.error = function(...args) {
+                    originalError.apply(console, args);
+                    addToLog(args.join(' '), 'error');
+                };
+
+                console.log('✅ 控制台日志已重定向到页面');
+            }
+
+            // 绑定事件监听器
+            bindEventListeners();
+        });
+
+        function bindEventListeners() {
+            // 检查环境按钮
+            document.getElementById('checkEnvBtn').addEventListener('click', checkFeishuEnvironment);
+
+            // 重新检查按钮
+            document.getElementById('refreshEnvBtn').addEventListener('click', checkFeishuEnvironment);
+
+            // API测试按钮
+            document.getElementById('testAllAPIBtn').addEventListener('click', async function() {
+                addToLog('开始测试所有飞书API...');
+                if (typeof FeishuAPITester !== 'undefined') {
+                    await FeishuAPITester.runPermissionCheck();
+                } else {
+                    addToLog('❌ FeishuAPITester未加载');
+                }
+            });
+
+            document.getElementById('testBitableBtn').addEventListener('click', async function() {
+                addToLog('测试多维表格API...');
+                if (typeof FeishuAPITester !== 'undefined') {
+                    await FeishuAPITester.testBitableAPI();
+                } else {
+                    addToLog('❌ FeishuAPITester未加载');
+                }
+            });
+
+            document.getElementById('testContactBtn').addEventListener('click', async function() {
+                addToLog('测试通讯录API...');
+                if (typeof FeishuAPITester !== 'undefined') {
+                    await FeishuAPITester.testContactAPI();
+                } else {
+                    addToLog('❌ FeishuAPITester未加载');
+                }
+            });
+
+            // Base连接测试按钮
+            document.getElementById('testBaseConnectionBtn').addEventListener('click', testBaseConnection);
+
+            document.getElementById('readBaseDataBtn').addEventListener('click', readBaseData);
+
+            document.getElementById('openBaseBtn').addEventListener('click', function() {
+                const url = document.getElementById('baseUrl').value;
+                window.open(url, '_blank');
+            });
+
+            // 快速修复按钮
+            document.getElementById('clearCacheBtn').addEventListener('click', clearAllCache);
+
+            document.getElementById('reloadScriptsBtn').addEventListener('click', reloadAllScripts);
+
+            document.getElementById('fullDiagnosticBtn').addEventListener('click', async function() {
+                addToLog('开始完整诊断...');
+                if (typeof SystemDiagnostic !== 'undefined') {
+                    await SystemDiagnostic.runFullDiagnostic();
+                } else {
+                    addToLog('❌ SystemDiagnostic未加载');
+                }
+            });
+        }
+
+        // 添加日志到页面
+        function addToLog(message) {
+            const consoleLog = document.getElementById('consoleLog');
+            if (consoleLog) {
+                const time = new Date().toLocaleTimeString();
+                consoleLog.innerHTML += `<div>[${time}] ${message}</div>`;
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            }
+        }
+
+        // 检查飞书环境
+        async function checkFeishuEnvironment() {
+            const resultDiv = document.getElementById('envCheckResult');
+            resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>正在检查飞书环境...</div>';
+
+            addToLog('🔍 开始检查飞书环境...');
+
+            try {
+                // 检查lark对象
+                addToLog('检查lark对象...');
+
+                const larkChecks = {
+                    'lark对象存在': typeof lark !== 'undefined',
+                    'lark版本': lark.version || '未知',
+                    'bitable模块': typeof lark.bitable !== 'undefined',
+                    'contact模块': typeof lark.contact !== 'undefined',
+                    'permission模块': typeof lark.permission !== 'undefined'
+                };
+
+                let allPassed = true;
+                let resultHTML = '<div class="alert">';
+
+                for (const [check, passed] of Object.entries(larkChecks)) {
+                    const status = passed ? '✅' : '❌';
+                    const color = passed ? 'success' : 'danger';
+                    resultHTML += `<div class="check-item">${status} ${check}: ${passed ? '已检测到' : '未检测到'}</div>`;
+                    if (!passed) allPassed = false;
+                    addToLog(`${status} ${check}: ${passed ? '已检测到' : '未检测到'}`);
+                }
+
+                if (allPassed) {
+                    resultHTML += '</div><div class="alert alert-success mt-2">';
+                    resultHTML += '<strong>✅ 飞书环境检测成功！</strong><br>';
+                    resultHTML += '所有必需的飞书API模块都已加载，可以正常使用飞书功能。';
+                    resultHTML += '</div>';
+                    addToLog('✅ 飞书环境检测成功！');
+                } else {
+                    resultHTML += '</div><div class="alert alert-warning mt-2">';
+                    resultHTML += '<strong>⚠️ 飞书环境检测失败</strong><br>';
+                    resultHTML += '部分飞书API模块未加载，可能是因为：<br>';
+                    resultHTML += '1. 不在飞书环境中打开<br>';
+                    resultHTML += '2. 飞书JS SDK加载失败<br>';
+                    resultHTML += '3. 网络连接问题';
+                    resultHTML += '</div>';
+                    addToLog('⚠️ 飞书环境检测失败');
+                }
+
+                resultDiv.innerHTML = resultHTML;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger"><strong>❌ 环境检查失败:</strong> ${error.message}</div>`;
+                addToLog(`❌ 环境检查失败: ${error.message}`);
+            }
+        }
+
+        // 测试Base连接
+        async function testBaseConnection() {
+            const resultDiv = document.getElementById('baseTestResult');
+            const appToken = document.getElementById('baseAppToken').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+
+            resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>正在测试Base连接...</div>';
+            addToLog(`🔍 测试Base连接... AppToken: ${appToken}`);
+
+            try {
+                if (typeof lark === 'undefined') {
+                    throw new Error('飞书JS SDK未加载');
+                }
+
+                if (!lark.bitable) {
+                    throw new Error('多维表格API不可用');
+                }
+
+                // 测试获取应用列表
+                const response = await lark.bitable.appList({
+                    page_size: 10
+                });
+
+                addToLog(`API响应: ${JSON.stringify(response)}`);
+
+                if (response.code === 0) {
+                    const targetApp = response.data.items.find(app => app.app_token === appToken);
+
+                    if (targetApp) {
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-success">
+                                <strong>✅ Base连接成功！</strong><br>
+                                应用名称: ${targetApp.name}<br>
+                                App Token: ${appToken}<br>
+                                链接: <a href="${baseUrl}" target="_blank">${baseUrl}</a>
+                            </div>
+                        `;
+                        addToLog('✅ Base连接成功！');
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-warning">
+                                <strong>⚠️ 未找到指定的Base应用</strong><br>
+                                App Token: ${appToken}<br>
+                                请检查App Token是否正确
+                            </div>
+                        `;
+                        addToLog('⚠️ 未找到指定的Base应用');
+                    }
+                } else {
+                    throw new Error(`API错误: ${response.msg}`);
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Base连接失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+                addToLog(`❌ Base连接失败: ${error.message}`);
+            }
+        }
+
+        // 读取Base数据
+        async function readBaseData() {
+            addToLog('📖 尝试读取Base数据...');
+            const appToken = document.getElementById('baseAppToken').value;
+            const tableId = document.getElementById('employeeTableId').value;
+
+            try {
+                const response = await lark.bitable.appTableRecord.list({
+                    app_token: appToken,
+                    table_id: tableId,
+                    page_size: 10
+                });
+
+                addToLog(`API响应: ${JSON.stringify(response)}`);
+
+                if (response.code === 0) {
+                    const recordCount = response.data.items ? response.data.items.length : 0;
+                    addToLog(`✅ 成功读取${recordCount}条记录`);
+                    alert(`成功读取${recordCount}条记录！`);
+                } else {
+                    addToLog(`❌ 读取失败: ${response.msg}`);
+                }
+            } catch (error) {
+                addToLog(`❌ 读取失败: ${error.message}`);
+                alert(`读取失败: ${error.message}`);
+            }
+        }
+
+        // 清除所有缓存
+        function clearAllCache() {
+            addToLog('🗑️ 清除所有缓存...');
+
+            // 清除localStorage
+            localStorage.clear();
+            addToLog('✅ localStorage已清除');
+
+            // 清除sessionStorage
+            sessionStorage.clear();
+            addToLog('✅ sessionStorage已清除');
+
+            // 重新加载页面
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+
+        // 重新加载脚本
+        function reloadAllScripts() {
+            addToLog('🔄 重新加载所有脚本...');
+            location.reload();
+        }
+
+        console.log('飞书配置页面逻辑已加载');
+    </script>
+</body>
+</html>

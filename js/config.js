@@ -303,6 +303,19 @@ function bindConfigEvents() {
         });
     }
 
+    // 测试飞书API按钮
+    const testFeishuAPIBtn = document.getElementById('testFeishuAPIBtn');
+    if (testFeishuAPIBtn) {
+        testFeishuAPIBtn.addEventListener('click', async function() {
+            if (typeof FeishuAPITester !== 'undefined') {
+                AITrainingUtils.showAlert('正在测试飞书API权限，请查看控制台...', 'info');
+                await FeishuAPITester.runPermissionCheck();
+            } else {
+                AITrainingUtils.showAlert('飞书API测试工具未加载', 'warning');
+            }
+        });
+    }
+
     // 修复：绑定权重滑块和输入框同步事件
     bindWeightSliders();
 
