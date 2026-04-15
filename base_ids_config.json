@@ -1,0 +1,65 @@
+{
+  "base_config": {
+    "name": "AI培训评估系统_全新",
+    "url": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb",
+    "app_token": "MiG6bsjMiaEwAEskaSScC7W8nGb",
+    "created_at": "2026-04-15T17:00:00+08:00",
+    "version": "1.0",
+    "description": "全新的AI培训评估系统，严格按照《FEISHU_BASE_TABLE_SCHEMA.md》规范创建"
+  },
+  "tables": {
+    "employees": {
+      "table_name": "员工表",
+      "table_id": "tbl0fkpRKGAaCaPy",
+      "view_id": "vewb0kybjd",
+      "record_count": 4,
+      "field_count": 5,
+      "description": "存储员工基本信息，用于评分时选择被评估员工"
+    },
+    "trainings": {
+      "table_name": "培训表",
+      "table_id": "tblShvLC5LCYzzfV",
+      "view_id": "vew6S8hrzo",
+      "record_count": 1,
+      "field_count": 16,
+      "description": "存储培训活动的基础信息"
+    },
+    "training_scores": {
+      "table_name": "培训评分表",
+      "table_id": "tblxLgRDWMSz8xZo",
+      "view_id": "vew6bACf6z",
+      "record_count": 3,
+      "field_count": 9,
+      "description": "存储员工培训部分的评分（5个维度）"
+    },
+    "application_scores": {
+      "table_name": "应用评分表",
+      "table_id": "tblNOBTibciFt8EC",
+      "view_id": "vewPlSStxE",
+      "record_count": 3,
+      "field_count": 7,
+      "description": "存储员工AI应用部分的评分（2个维度）"
+    },
+    "score_configs": {
+      "table_name": "评分配置表",
+      "table_id": "tblJuSwhGEr94Pbu",
+      "view_id": "vew1kC6Ngr",
+      "record_count": 7,
+      "field_count": 4,
+      "description": "存储评分维度的配置信息（权重、描述等）"
+    }
+  },
+  "table_links": {
+    "employees": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb?table=tbl0fkpRKGAaCaPy",
+    "trainings": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb?table=tblShvLC5LCYzzfV",
+    "training_scores": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb?table=tblxLgRDWMSz8xZo",
+    "application_scores": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb?table=tblNOBTibciFt8EC",
+    "score_configs": "https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb?table=tblJuSwhGEr94Pbu"
+  },
+  "metadata": {
+    "generated_at": "2026-04-15T17:01:36+08:00",
+    "generated_by": "王浩",
+    "company": "兆原数通（北京）数据科技有限公司",
+    "department": "销售与售前部, 产品与测试部, 研发部, 实施交付部, 质量管理部, dsg-成都, 总经办, 销售与售前部-销售组"
+  }
+}

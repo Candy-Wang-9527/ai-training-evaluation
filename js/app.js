@@ -276,7 +276,7 @@ function bindEventListeners() {
             if (typeof BaseEmbedManager !== 'undefined') {
                 BaseEmbedManager.openBase();
             } else {
-                window.open('https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc', '_blank');
+                window.open('https://st3m3xa39z.feishu.cn/base/MiG6bsjMiaEwAEskaSScC7W8nGb', '_blank');
             }
         });
     }
