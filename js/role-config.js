@@ -106,37 +106,75 @@ class RoleConfigManager {
     loadUserRoleMappings() {
         const stored = localStorage.getItem('user_role_mappings');
         if (stored) {
-            return JSON.parse(stored);
+            return this.migrateToMultiRole(JSON.parse(stored));
         }
 
-        // 默认角色映射配置
+        // 默认角色映射配置（支持多角色）
         const defaultMappings = {
-            // 通过飞书用户ID映射
+            // 通过飞书用户ID映射（支持多角色）
             'by_user_id': {
-                // 'ou_xxxxxxxxx': 'hr',
-                // 'ou_yyyyyyyyy': 'judge',
-                // 'ou_zzzzzzzzz': 'gm'
+                // 'ou_xxxxxxxxx': ['hr', 'judge'],  // 一个用户可以有多个角色
+                // 'ou_yyyyyyyyy': ['judge'],
+                // 'ou_zzzzzzzzz': ['gm', 'admin']
             },
 
-            // 通过姓名映射
+            // 通过姓名映射（支持多角色）
             'by_name': {
-                '王浩': 'judge',
+                '王浩': ['judge'],  // 数组格式，支持多个角色
                 // 可以添加更多用户
-                // '张三': 'hr',
-                // '李四': 'instructor',
-                // '总经理': 'gm'
+                // '张三': ['hr', 'instructor'],  // 同时是人力和讲师
+                // '李四': ['judge'],
+                // '总经理': ['gm', 'admin']  // 同时是总经理和管理员
             },
 
-            // 通过部门映射（作为备选）
+            // 通过部门映射（作为备选，支持多角色）
             'by_department': {
-                '人力部': 'hr',
-                '人力资源部': 'hr',
-                '技术部': 'judge',
-                '培训部': 'instructor'
+                '人力部': ['hr'],
+                '人力资源部': ['hr'],
+                '技术部': ['judge'],
+                '培训部': ['instructor']
             }
         };
 
         return defaultMappings;
+    }
+
+    /**
+     * 将旧的单角色配置迁移到多角色配置
+     */
+    migrateToMultiRole(config) {
+        let needsMigration = false;
+
+        // 检查是否需要迁移
+        for (const type in config) {
+            for (const key in config[type]) {
+                if (!Array.isArray(config[type][key])) {
+                    needsMigration = true;
+                    break;
+                }
+            }
+        }
+
+        if (!needsMigration) {
+            return config;
+        }
+
+        console.log('检测到旧版本角色配置，正在迁移到多角色格式...');
+
+        // 迁移配置
+        for (const type in config) {
+            for (const key in config[type]) {
+                if (typeof config[type][key] === 'string') {
+                    config[type][key] = [config[type][key]];  // 转换为数组
+                }
+            }
+        }
+
+        // 保存迁移后的配置
+        localStorage.setItem('user_role_mappings', JSON.stringify(config));
+        console.log('角色配置迁移完成');
+
+        return config;
     }
 
     /**
@@ -147,19 +185,91 @@ class RoleConfigManager {
     }
 
     /**
-     * 添加用户角色映射
+     * 添加用户角色映射（支持多角色）
      */
     addUserRoleMapping(identifier, role, mappingType = 'by_name') {
         if (!Object.values(SYSTEM_ROLES).includes(role)) {
             throw new Error(`无效的角色: ${role}`);
         }
 
-        this.userRoleMappings[mappingType][identifier] = role;
+        // 如果该标识符还没有角色配置，创建数组
+        if (!this.userRoleMappings[mappingType][identifier]) {
+            this.userRoleMappings[mappingType][identifier] = [];
+        }
+
+        // 确保是数组
+        if (!Array.isArray(this.userRoleMappings[mappingType][identifier])) {
+            this.userRoleMappings[mappingType][identifier] = [this.userRoleMappings[mappingType][identifier]];
+        }
+
+        // 添加角色（如果不存在）
+        const roles = this.userRoleMappings[mappingType][identifier];
+        if (!roles.includes(role)) {
+            roles.push(role);
+        }
+
         this.saveUserRoleMappings();
 
         return {
             success: true,
-            message: `已将 ${identifier} 设置为 ${ROLE_DISPLAY_NAMES[role]}`
+            message: `已为 ${identifier} 添加角色 ${ROLE_DISPLAY_NAMES[role]}`
+        };
+    }
+
+    /**
+     * 移除用户的特定角色
+     */
+    removeUserRoleFromUser(identifier, role, mappingType = 'by_name') {
+        if (!this.userRoleMappings[mappingType][identifier]) {
+            return {
+                success: false,
+                message: `${identifier} 没有角色配置`
+            };
+        }
+
+        const roles = this.userRoleMappings[mappingType][identifier];
+        const index = roles.indexOf(role);
+
+        if (index === -1) {
+            return {
+                success: false,
+                message: `${identifier} 没有 ${ROLE_DISPLAY_NAMES[role]} 角色`
+            };
+        }
+
+        roles.splice(index, 1);
+
+        // 如果没有角色了，删除该条目
+        if (roles.length === 0) {
+            delete this.userRoleMappings[mappingType][identifier];
+        }
+
+        this.saveUserRoleMappings();
+
+        return {
+            success: true,
+            message: `已移除 ${identifier} 的 ${ROLE_DISPLAY_NAMES[role]} 角色`
+        };
+    }
+
+    /**
+     * 设置用户的所有角色（替换现有角色）
+     */
+    setUserRoles(identifier, roles, mappingType = 'by_name') {
+        // 验证所有角色
+        for (const role of roles) {
+            if (!Object.values(SYSTEM_ROLES).includes(role)) {
+                throw new Error(`无效的角色: ${role}`);
+            }
+        }
+
+        this.userRoleMappings[mappingType][identifier] = roles;
+        this.saveUserRoleMappings();
+
+        const roleNames = roles.map(r => ROLE_DISPLAY_NAMES[r]).join('、');
+        return {
+            success: true,
+            message: `已设置 ${identifier} 的角色为：${roleNames}`
         };
     }
 
@@ -172,42 +282,109 @@ class RoleConfigManager {
 
         return {
             success: true,
-            message: `已移除 ${identifier} 的角色配置`
+            message: `已移除 ${identifier} 的所有角色配置`
         };
     }
 
     /**
-     * 获取用户角色
+     * 获取用户的所有角色（返回数组）
      */
-    getUserRole(userInfo) {
+    getUserRoles(userInfo) {
         if (!userInfo) {
-            return SYSTEM_ROLES.JUDGE; // 默认为评审员角色
+            return [SYSTEM_ROLES.JUDGE]; // 默认为评审员角色
         }
+
+        let roles = [];
 
         // 1. 优先通过用户ID查找
         if (userInfo.user_id && this.userRoleMappings.by_user_id[userInfo.user_id]) {
-            return this.userRoleMappings.by_user_id[userInfo.user_id];
+            const userRoles = this.userRoleMappings.by_user_id[userInfo.user_id];
+            if (Array.isArray(userRoles)) {
+                roles = roles.concat(userRoles);
+            } else {
+                roles.push(userRoles);
+            }
         }
 
         // 2. 通过姓名查找
         if (userInfo.name && this.userRoleMappings.by_name[userInfo.name]) {
-            return this.userRoleMappings.by_name[userInfo.name];
+            const nameRoles = this.userRoleMappings.by_name[userInfo.name];
+            if (Array.isArray(nameRoles)) {
+                roles = roles.concat(nameRoles);
+            } else {
+                roles.push(nameRoles);
+            }
         }
 
         // 3. 通过部门查找（作为备选）
         if (userInfo.department && this.userRoleMappings.by_department[userInfo.department]) {
-            return this.userRoleMappings.by_department[userInfo.department];
+            const deptRoles = this.userRoleMappings.by_department[userInfo.department];
+            if (Array.isArray(deptRoles)) {
+                roles = roles.concat(deptRoles);
+            } else {
+                roles.push(deptRoles);
+            }
         }
 
-        // 4. 默认返回评审员角色
-        return SYSTEM_ROLES.JUDGE;
+        // 去重
+        roles = [...new Set(roles)];
+
+        return roles.length > 0 ? roles : [SYSTEM_ROLES.JUDGE];
     }
 
     /**
-     * 检查用户是否有特定权限
+     * 获取用户的主角色（兼容旧版本，返回第一个角色）
      */
-    hasPermission(userRole, permission) {
-        const roleConfig = ROLE_PERMISSIONS[userRole];
+    getUserRole(userInfo) {
+        const roles = this.getUserRoles(userInfo);
+        return roles[0] || SYSTEM_ROLES.JUDGE;
+    }
+
+    /**
+     * 检查用户是否有指定角色
+     */
+    hasRole(userInfo, role) {
+        const roles = this.getUserRoles(userInfo);
+        return roles.includes(role);
+    }
+
+    /**
+     * 检查用户是否有任一指定角色
+     */
+    hasAnyRole(userInfo, roleArray) {
+        const roles = this.getUserRoles(userInfo);
+        return roleArray.some(role => roles.includes(role));
+    }
+
+    /**
+     * 检查用户是否有所有指定角色
+     */
+    hasAllRoles(userInfo, roleArray) {
+        const roles = this.getUserRoles(userInfo);
+        return roleArray.every(role => roles.includes(role));
+    }
+
+    /**
+     * 检查用户是否有特定权限（多角色支持）
+     */
+    hasPermission(userInfo, permission) {
+        const roles = this.getUserRoles(userInfo);
+
+        // 检查任一角色是否有该权限
+        for (const role of roles) {
+            if (this.roleHasPermission(role, permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 检查单个角色是否有特定权限
+     */
+    roleHasPermission(role, permission) {
+        const roleConfig = ROLE_PERMISSIONS[role];
         if (!roleConfig) {
             return false;
         }
