@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书Base多级评审流程示例</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .workflow-demo {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .stage-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .stage-hr_entry { background-color: #17a2b8; }
+        .stage-tech_review { background-color: #ffc107; }
+        .stage-gm_approval { background-color: #dc3545; }
+        .stage-completed { background-color: #28a745; }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .api-result {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 飞书JS SDK -->
+    <script src="https://lf1-cdn-tos.bytegoofy.com/obj/eden-cn/ljhwzqkjuhp/lark/js-sdk/lark-jsapi.min.js"></script>
+
+    <div class="workflow-demo">
+        <h1><i class="fas fa-project-diagram me-2"></i>飞书Base多级评审流程集成示例</h1>
+
+        <!-- 环境信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>环境信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Base链接：</strong></p>
+                        <a href="https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc" target="_blank">
+                            https://st3m3xa39z.feishu.cn/base/GA1QbgqTzaHaVIsIKWDcFI79nuc
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>App Token：</strong> GA1QbgqTzaHaVIsIKWDcFI79nuc</p>
+                        <p><strong>支持的表格数量：</strong> 7个</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 初始化区域 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>1. 初始化工作流客户端</h5>
+            </div>
+            <div class="card-body">
+                <p>点击下方按钮初始化飞书Base工作流客户端：</p>
+                <button class="btn btn-primary" onclick="initWorkflow()">
+                    <i class="fas fa-rocket me-2"></i>初始化工作流客户端
+                </button>
+                <div id="initResult" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- 表格结构展示 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>2. 支持的7个表格</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>表格名称</th>
+                                <th>Table ID</th>
+                                <th>用途</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>员工信息表</td>
+                                <td><code>tblIVqXEzmZdKxjI</code></td>
+                                <td>存储员工基本信息</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>培训记录表</td>
+                                <td><code>tblCfjFzfiZ2yvRr</code></td>
+                                <td>记录培训活动信息</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>评委信息表</td>
+                                <td><code>tblYqGszLDdookcH</code></td>
+                                <td>管理评委信息</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>培训打分表</td>
+                                <td><code>tblg3G6KPSAhBHNw</code></td>
+                                <td>存储培训维度评分</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>AI应用打分表</td>
+                                <td><code>tblHwmO8RAe9KBIm</code></td>
+                                <td>存储应用维度评分</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>评分配置表</td>
+                                <td><code>tblaZKWjxym9YnLJ</code></td>
+                                <td>配置评分权重和规则</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>评估汇总表</td>
+                                <td><code>tblG0iiVyCRdZj2U</code></td>
+                                <td>工作流核心，管理评估流程</td>
+                                <td><span class="badge bg-success">✅ 正确</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- API功能演示 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-code me-2"></i>3. API功能演示</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="list-group">
+                            <button class="list-group-item list-group-item-action" onclick="testLoadEmployees()">
+                                <i class="fas fa-users me-2"></i>加载员工数据
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="testGetScoreConfigs()">
+                                <i class="fas fa-cog me-2"></i>获取评分配置
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="testCreateEvaluation()">
+                                <i class="fas fa-plus-circle me-2"></i>创建评估记录
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="testSubmitToNextStage()">
+                                <i class="fas fa-arrow-right me-2"></i>提交到下一阶段
+                            </button>
+                            <button class="list-group-item list-group-item-action" onclick="testGetMyTasks()">
+                                <i class="fas fa-tasks me-2"></i>获取我的待办
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="apiResult" class="api-result" style="display: none;">
+                            <h6>API调用结果：</h6>
+                            <pre id="apiOutput"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工作流流程图 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-sitemap me-2"></i>4. 多级评审流程</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>流程说明</h6>
+                    <ol>
+                        <li><strong>人力录入阶段</strong>：人力部门创建评估记录，录入员工基本信息</li>
+                        <li><strong>技术委员会评审阶段</strong>：技术架构委员会对7个维度进行评分</li>
+                        <li><strong>总经理审批阶段</strong>：总经理查看评审结果，可以调整评分并最终批准</li>
+                        <li><strong>完成状态</strong>：评估流程完成，相关人员可查看统计报表</li>
+                    </ol>
+                </div>
+
+                <div class="progress" style="height: 40px; margin: 20px 0;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 25%">
+                        <i class="fas fa-user-plus me-1"></i>人力录入
+                    </div>
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 25%">
+                        <i class="fas fa-cogs me-1"></i>技术评审
+                    </div>
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: 25%">
+                        <i class="fas fa-user-shield me-1"></i>总经理审批
+                    </div>
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 25%">
+                        <i class="fas fa-check-circle me-1"></i>完成
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 代码示例 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>5. 代码使用示例</h5>
+            </div>
+            <div class="card-body">
+                <h6>初始化客户端：</h6>
+                <div class="code-block">
+const initialized = await window.FeishuWorkflow.initialize();
+if (initialized) {
+    console.log('当前用户:', window.FeishuWorkflow.client.currentUser);
+    console.log('当前角色:', window.FeishuWorkflow.client.currentRole);
+}
+                </div>
+
+                <h6>创建评估记录：</h6>
+                <div class="code-block">
+const evaluationData = {
+    employee_name: '张三',
+    evaluation_period: '2026年第一季度',
+    evaluation_date: '2026-04-15'
+};
+
+const result = await window.FeishuWorkflow.createEvaluationSummary(evaluationData);
+console.log('创建结果:', result);
+                </div>
+
+                <h6>提交到下一阶段：</h6>
+                <div class="code-block">
+const submitResult = await window.FeishuWorkflow.submitToNextStage(
+    result.record_id,
+    'hr_entry',
+    '人力录入完成，提交到技术委员会评审'
+);
+console.log('提交结果:', submitResult);
+                </div>
+
+                <h6>获取待办任务：</h6>
+                <div class="code-block">
+const myTasks = await window.FeishuWorkflow.getMyTasks();
+console.log('我的待办任务:', myTasks);
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据结构示例 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-database me-2"></i>6. 评估汇总表数据结构</h5>
+            </div>
+            <div class="card-body">
+                <div class="code-block">
+{
+  "summary_id": "eval_1234567890_abc",
+  "employee_name": "张三",
+  "evaluation_period": "2026年第一季度",
+  "evaluation_date": "2026-04-15",
+
+  // 工作流字段
+  "workflow_stage": "tech_review",           // 当前阶段
+  "workflow_status": "in_progress",          // 状态
+  "current_role": "tech_committee",          // 当前处理角色
+
+  // 分数字段
+  "training_total": 85.6,                    // 培训总分
+  "application_total": 88.2,                 // 应用总分
+  "final_score": 87.1,                       // 最终得分
+
+  // 评语字段
+  "training_comments": "培训表现优秀...",
+  "application_comments": "应用能力强...",
+  "overall_suggestions": "继续提升...",
+  "gm_comments": "",                         // 总经理评语
+
+  // 时间戳字段
+  "hr_submit_time": "2026-04-15T10:00:00Z",
+  "tech_review_time": "2026-04-16T14:30:00Z",
+  "gm_approval_time": null,
+  "complete_time": null,
+
+  // 人员字段
+  "created_by": "hr",                        // 创建人
+  "modified_by": "tech_committee",           // 最后修改人
+  "tech_reviewer": "王浩",                   // 技术评审人
+  "gm_approver": "",                         // 总经理审批人
+
+  // 历史记录字段（JSON字符串）
+  "workflow_history": "[{\"action\":\"create\",\"stage\":\"hr_entry\",\"actor\":\"hr\",\"timestamp\":\"2026-04-15T10:00:00Z\"}]"
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载工作流配置 -->
+    <script src="js/feishu-config-workflow.js"></script>
+
+    <script>
+        // 初始化工作流客户端
+        async function initWorkflow() {
+            const resultDiv = document.getElementById('initResult');
+
+            try {
+                resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>正在初始化...</div>';
+
+                const initialized = await window.FeishuWorkflow.initialize();
+
+                if (initialized) {
+                    const client = window.FeishuWorkflow.client;
+
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>初始化成功！</h6>
+                            <table class="table table-sm">
+                                <tr><td><strong>用户ID:</strong></td><td>${client.currentUser?.user_id || '本地模式'}</td></tr>
+                                <tr><td><strong>用户名:</strong></td><td>${client.currentUser?.name || '测试用户'}</td></tr>
+                                <tr><td><strong>部门:</strong></td><td>${client.currentUser?.department || '技术部'}</td></tr>
+                                <tr><td><strong>当前角色:</strong></td><td><span class="badge bg-primary">${client.currentRole}</span></td></tr>
+                                <tr><td><strong>环境:</strong></td><td>${client.isInitialized ? '飞书环境' : '本地模式'}</td></tr>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            未在飞书环境中运行，使用本地模拟模式
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        初始化失败: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试加载员工数据
+        async function testLoadEmployees() {
+            showApiResult('正在加载员工数据...');
+
+            try {
+                const employees = await window.FeishuWorkflow.getTableData('employees');
+                showApiResult(`成功加载 ${employees.length} 名员工数据:`, employees);
+            } catch (error) {
+                showApiResult(`加载失败: ${error.message}`);
+            }
+        }
+
+        // 测试获取评分配置
+        async function testGetScoreConfigs() {
+            showApiResult('正在获取评分配置...');
+
+            try {
+                const configs = await window.FeishuWorkflow.getScoreConfigs();
+                showApiResult('评分配置:', {
+                    training_count: configs.training.length,
+                    application_count: configs.application.length,
+                    training_weights: configs.getTrainingWeights(),
+                    application_weights: configs.getApplicationWeights()
+                });
+            } catch (error) {
+                showApiResult(`获取失败: ${error.message}`);
+            }
+        }
+
+        // 测试创建评估记录
+        async function testCreateEvaluation() {
+            showApiResult('正在创建评估记录...');
+
+            try {
+                const evaluationData = {
+                    employee_name: '张三',
+                    evaluation_period: '2026年第一季度',
+                    evaluation_date: new Date().toISOString().split('T')[0]
+                };
+
+                const result = await window.FeishuWorkflow.createEvaluationSummary(evaluationData);
+                showApiResult('创建结果:', result);
+            } catch (error) {
+                showApiResult(`创建失败: ${error.message}`);
+            }
+        }
+
+        // 测试提交到下一阶段
+        async function testSubmitToNextStage() {
+            showApiResult('正在提交到下一阶段...');
+
+            try {
+                // 这里需要先有一个评估记录ID
+                const recordId = prompt('请输入评估记录ID:', 'local_' + Date.now());
+
+                if (!recordId) {
+                    showApiResult('操作取消');
+                    return;
+                }
+
+                const currentStage = prompt('请输入当前阶段 (hr_entry/tech_review/gm_approval):', 'hr_entry');
+
+                const result = await window.FeishuWorkflow.submitToNextStage(
+                    recordId,
+                    currentStage,
+                    '测试提交'
+                );
+
+                showApiResult('提交结果:', result);
+            } catch (error) {
+                showApiResult(`提交失败: ${error.message}`);
+            }
+        }
+
+        // 测试获取待办任务
+        async function testGetMyTasks() {
+            showApiResult('正在获取待办任务...');
+
+            try {
+                const tasks = await window.FeishuWorkflow.getMyTasks();
+                showApiResult(`找到 ${tasks.length} 个待办任务:`, tasks);
+            } catch (error) {
+                showApiResult(`获取失败: ${error.message}`);
+            }
+        }
+
+        // 显示API结果
+        function showApiResult(message, data = null) {
+            const resultDiv = document.getElementById('apiResult');
+            const outputPre = document.getElementById('apiOutput');
+
+            resultDiv.style.display = 'block';
+
+            if (data) {
+                outputPre.textContent = message + '\n' + JSON.stringify(data, null, 2);
+            } else {
+                outputPre.textContent = message;
+            }
+        }
+
+        // 页面加载完成后自动初始化
+        window.addEventListener('load', function() {
+            console.log('飞书Base多级评审流程示例页面已加载');
+            console.log('支持的API:', Object.keys(window.FeishuWorkflow));
+        });
+    </script>
+</body>
+</html>

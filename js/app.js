@@ -1,4 +1,5 @@
 // AI培训评估系统 - 主JavaScript文件（集成飞书Base版本）
+// 使用公共工具库 AITrainingUtils
 
 // 全局变量
 let employeesList = [];
@@ -13,9 +14,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 // 初始化应用
 async function initializeApp() {
     console.log('初始化AI培训评估系统...');
-    
+
     // 设置当前日期
-    const today = new Date().toISOString().split('T')[0];
+    const today = AITrainingUtils.getTodayString();
     document.getElementById('evaluationDate').value = today;
     
     // 初始化飞书Base
@@ -27,15 +28,15 @@ async function initializeApp() {
     // 加载评分配置
     await loadScoreConfig();
     
+    // 初始化滑块和输入框同步（必须在绑定事件之前）
+    initializeScoreInputs();
+
     // 绑定事件监听器
     bindEventListeners();
-    
-    // 初始化滑块和输入框同步
-    initializeScoreInputs();
-    
-    // 更新预览
+
+    // 初始化更新分数预览
     updateScorePreview();
-    
+
     console.log('系统初始化完成');
 }
 
@@ -53,18 +54,18 @@ async function initializeFeishuBase() {
             
             if (isFeishuEnv) {
                 console.log('飞书Base连接成功');
-                document.getElementById('envStatus').innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>飞书Base连接正常';
+                AITrainingUtils.safeSetContent(document.getElementById('envStatus'), '<i class="fas fa-check-circle text-success me-1"></i>飞书Base连接正常', true);
             } else {
                 console.warn('飞书Base连接失败，使用本地模式');
-                document.getElementById('envStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>本地模式（无Base连接）';
+                AITrainingUtils.safeSetContent(document.getElementById('envStatus'), '<i class="fas fa-exclamation-triangle text-warning me-1"></i>本地模式（无Base连接）', true);
             }
         } else {
             console.warn('非飞书环境，使用本地模式');
-            document.getElementById('envStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>本地模式（非飞书环境）';
+            AITrainingUtils.safeSetContent(document.getElementById('envStatus'), '<i class="fas fa-exclamation-triangle text-warning me-1"></i>本地模式（非飞书环境）', true);
         }
     } catch (error) {
         console.error('飞书Base初始化失败:', error);
-        document.getElementById('envStatus').innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i>飞书Base连接失败';
+        AITrainingUtils.safeSetContent(document.getElementById('envStatus'), '<i class="fas fa-times-circle text-danger me-1"></i>飞书Base连接失败', true);
     }
 }
 
@@ -122,7 +123,7 @@ async function loadEmployees() {
     } catch (error) {
         console.error('加载员工数据失败:', error);
         loadingElement.style.display = 'none';
-        showAlert('加载员工数据失败，请检查网络连接', 'error');
+        AITrainingUtils.handleError(error, '加载员工数据');
     }
 }
 
@@ -164,7 +165,7 @@ async function loadScoreConfig() {
         }
     } catch (error) {
         console.error('加载评分配置失败:', error);
-        showAlert('加载评分配置失败，使用默认配置', 'warning');
+        AITrainingUtils.AITrainingUtils.showAlert('加载评分配置失败，使用默认配置', 'warning');
     }
 }
 
@@ -231,6 +232,12 @@ function bindEventListeners() {
             });
         }
     }
+    
+    // Base连接测试按钮
+    const testBtn = document.getElementById('testConnectionBtn');
+    if (testBtn) {
+        testBtn.addEventListener('click', testBaseConnection);
+    }
 }
 
 // 初始化评分输入
@@ -273,8 +280,8 @@ function updateScorePreview() {
         const trainingScores = scores.slice(0, 5); // 前5个是培训分数
         const applicationScores = scores.slice(5, 7); // 后2个是应用分数
         
-        const trainingTotal = calculateWeightedTotal(trainingScores, trainingWeights);
-        const applicationTotal = calculateWeightedTotal(applicationScores, applicationWeights);
+        const trainingTotal = AITrainingUtils.calculateWeightedTotal(trainingScores, trainingWeights);
+        const applicationTotal = AITrainingUtils.calculateWeightedTotal(applicationScores, applicationWeights);
         const finalScore = trainingTotal * trainingWeight + applicationTotal * applicationWeight;
         
         // 更新显示
@@ -283,72 +290,46 @@ function updateScorePreview() {
         document.getElementById('finalScorePreview').textContent = finalScore.toFixed(1);
         
         // 根据分数设置颜色
-        setScoreColor(finalScore, 'finalScorePreview');
-        setScoreColor(trainingTotal, 'trainingTotalPreview');
-        setScoreColor(applicationTotal, 'applicationTotalPreview');
+        AITrainingUtils.setScoreColor(finalScore, 'finalScorePreview');
+        AITrainingUtils.setScoreColor(trainingTotal, 'trainingTotalPreview');
+        AITrainingUtils.setScoreColor(applicationTotal, 'applicationTotalPreview');
         
     } catch (error) {
         console.error('更新分数预览失败:', error);
     }
 }
 
-// 计算加权总分
-function calculateWeightedTotal(scores, weights) {
-    let total = 0;
-    for (let i = 0; i < scores.length; i++) {
-        total += scores[i] * weights[i];
-    }
-    return total;
-}
-
-// 根据分数设置颜色
-function setScoreColor(score, elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    // 移除之前的颜色类
-    element.classList.remove('text-danger', 'text-warning', 'text-info', 'text-success');
-    
-    // 根据分数设置颜色
-    if (score < 70) {
-        element.classList.add('text-danger'); // 红色：待改进
-    } else if (score < 80) {
-        element.classList.add('text-warning'); // 黄色：一般
-    } else if (score < 90) {
-        element.classList.add('text-info'); // 蓝色：良好
-    } else {
-        element.classList.add('text-success'); // 绿色：优秀
-    }
-}
 
 // 保存评分
 async function saveScore() {
     const selectedEmployee = document.getElementById('employeeSelect').value;
     const evaluationDate = document.getElementById('evaluationDate').value;
-    
-    if (!selectedEmployee || selectedEmployee === '') {
-        showAlert('请先选择被评估员工', 'warning');
+
+    // 验证员工姓名
+    if (!AITrainingUtils.isValidEmployeeName(selectedEmployee)) {
+        AITrainingUtils.showAlert('请先选择被评估员工', 'warning');
         return;
     }
-    
+
+    // 验证评估日期
+    if (!AITrainingUtils.isValidDate(evaluationDate)) {
+        AITrainingUtils.showAlert('请选择有效的评估日期', 'warning');
+        return;
+    }
+
     // 验证评分数据
     const scores = [];
-    let isValid = true;
-    
     for (let i = 1; i <= 7; i++) {
         const input = document.getElementById(`score${i}Input`);
         const value = parseInt(input?.value) || 0;
-        
-        if (value < 0 || value > 100) {
-            isValid = false;
-            showAlert(`第${i}个评分必须在0-100之间`, 'warning');
+
+        if (!AITrainingUtils.isValidScore(value)) {
+            AITrainingUtils.showAlert(`第${i}个评分必须在0-100之间`, 'warning');
             return;
         }
-        
+
         scores.push(value);
     }
-    
-    if (!isValid) return;
     
     // 获取当前用户（从导航栏）
     const currentUser = document.getElementById('currentUser').textContent || '匿名评估人';
@@ -362,7 +343,7 @@ async function saveScore() {
         score3: scores[2],
         score4: scores[3],
         score5: scores[4],
-        total_score: calculateWeightedTotal(
+        total_score: AITrainingUtils.calculateWeightedTotal(
             scores.slice(0, 5),
             scoreConfigs?.getTrainingWeights() || [0.2, 0.2, 0.2, 0.2, 0.2]
         ),
@@ -375,7 +356,7 @@ async function saveScore() {
         evaluation_date: evaluationDate,
         score6: scores[5],
         score7: scores[6],
-        total_score: calculateWeightedTotal(
+        total_score: AITrainingUtils.calculateWeightedTotal(
             scores.slice(5, 7),
             scoreConfigs?.getApplicationWeights() || [0.5, 0.5]
         ),
@@ -413,10 +394,10 @@ async function saveScore() {
         saveBtn.disabled = false;
         
         if (saveResult.success) {
-            showAlert(saveResult.message, 'success');
+            AITrainingUtils.showAlert(saveResult.message, 'success');
             console.log('评分保存成功:', { selectedEmployee, scores });
         } else {
-            showAlert(saveResult.message, 'error');
+            AITrainingUtils.showAlert(saveResult.message, 'error');
         }
         
     } catch (error) {
@@ -427,7 +408,7 @@ async function saveScore() {
         saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>保存评分';
         saveBtn.disabled = false;
         
-        showAlert('保存失败: ' + error.message, 'error');
+        AITrainingUtils.showAlert('保存失败: ' + error.message, 'error');
     }
 }
 
@@ -435,26 +416,30 @@ async function saveScore() {
 function saveToLocalStorage(trainingData, applicationData) {
     try {
         // 获取现有数据
-        const trainingScores = JSON.parse(localStorage.getItem('local_training_scores') || '[]');
-        const applicationScores = JSON.parse(localStorage.getItem('local_application_scores') || '[]');
-        
+        const trainingScores = AITrainingUtils.loadFromLocalStorage('local_training_scores', []);
+        const applicationScores = AITrainingUtils.loadFromLocalStorage('local_application_scores', []);
+
         // 添加新数据
         trainingScores.push({
             ...trainingData,
             id: Date.now(),
             created_time: new Date().toISOString()
         });
-        
+
         applicationScores.push({
             ...applicationData,
             id: Date.now() + 1,
             created_time: new Date().toISOString()
         });
-        
-        // 保存回本地存储
-        localStorage.setItem('local_training_scores', JSON.stringify(trainingScores));
-        localStorage.setItem('local_application_scores', JSON.stringify(applicationScores));
-        
+
+        // 使用安全的本地存储方法
+        const trainingSaved = AITrainingUtils.saveToLocalStorage('local_training_scores', trainingScores);
+        const applicationSaved = AITrainingUtils.saveToLocalStorage('local_application_scores', applicationScores);
+
+        if (!trainingSaved || !applicationSaved) {
+            throw new Error('本地存储保存失败');
+        }
+
     } catch (error) {
         console.error('本地存储保存失败:', error);
         throw error;
@@ -471,7 +456,7 @@ async function submitEvaluation() {
     await saveScore();
     
     // 显示提交成功消息
-    showAlert('评估已成功提交！系统将自动计算统计结果。', 'success');
+    AITrainingUtils.showAlert('评估已成功提交！系统将自动计算统计结果。', 'success');
     
     // 重置表单
     setTimeout(() => {
@@ -483,7 +468,7 @@ async function submitEvaluation() {
 // 刷新Base数据
 async function refreshBaseData() {
     try {
-        showAlert('正在刷新数据...', 'info');
+        AITrainingUtils.showAlert('正在刷新数据...', 'info');
         
         // 重新加载员工数据
         await loadEmployees();
@@ -491,11 +476,11 @@ async function refreshBaseData() {
         // 重新加载评分配置
         await loadScoreConfig();
         
-        showAlert('数据刷新完成！', 'success');
+        AITrainingUtils.showAlert('数据刷新完成！', 'success');
         
     } catch (error) {
         console.error('刷新数据失败:', error);
-        showAlert('刷新数据失败: ' + error.message, 'error');
+        AITrainingUtils.showAlert('刷新数据失败: ' + error.message, 'error');
     }
 }
 
@@ -504,9 +489,9 @@ function resetForm() {
     // 重置员工选择
     document.getElementById('employeeSelect').selectedIndex = 0;
     document.getElementById('employeeDept').value = '';
-    
+
     // 重置日期为今天
-    const today = new Date().toISOString().split('T')[0];
+    const today = AITrainingUtils.getTodayString();
     document.getElementById('evaluationDate').value = today;
     
     // 重置所有评分输入
@@ -533,66 +518,100 @@ function resetForm() {
     console.log('表单已重置');
 }
 
-// 显示提示消息
-function showAlert(message, type = 'info') {
-    // 创建一个提示元素
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
+
+// Base连接测试函数（您提到的缺失功能）
+async function testBaseConnection() {
+    const urlInput = document.getElementById('baseUrlInput');
+    const resultDiv = document.getElementById('connectionResult');
+    const messageSpan = document.getElementById('resultMessage');
     
-    // 根据类型设置图标
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-    if (type === 'error') icon = 'times-circle';
-    if (type === 'info') icon = 'info-circle';
-    
-    alertDiv.innerHTML = `
-        <i class="fas fa-${icon} me-2"></i>${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // 添加到页面
-    const container = document.getElementById('alertContainer');
-    if (container) {
-        container.innerHTML = '';
-        container.appendChild(alertDiv);
-    } else {
-        // 如果容器不存在，创建一个
-        const newContainer = document.createElement('div');
-        newContainer.id = 'alertContainer';
-        newContainer.appendChild(alertDiv);
-        document.querySelector('.container').insertBefore(newContainer, document.querySelector('.container').firstChild);
+    if (!urlInput || !resultDiv || !messageSpan) {
+        console.error('验证UI元素未找到');
+        return;
     }
     
-    // 5秒后自动消失
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.classList.remove('show');
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.parentNode.removeChild(alertDiv);
-                }
-            }, 500);
-        }
-    }, 5000);
-}
-
-// 工具函数：获取当前时间戳
-function getCurrentTimestamp() {
-    return Math.floor(Date.now() / 1000);
-}
-
-// 工具函数：格式化日期
-function formatDate(dateString) {
-    if (!dateString) return '';
+    // 禁用按钮，防止重复点击
+    const testBtn = document.getElementById('testConnectionBtn');
+    const originalText = testBtn.innerHTML;
+    testBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>测试中...';
+    testBtn.disabled = true;
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
+    try {
+        const url = urlInput.value.trim();
+        let appToken = '';
+        
+        // 从URL中提取app_token
+        if (url) {
+            const matches = url.match(/\/base\/([A-Za-z0-9]+)/);
+            if (matches && matches[1]) {
+                appToken = matches[1];
+                console.log('从URL中提取的app_token:', appToken);
+            } else {
+                // 直接使用输入的token
+                appToken = url;
+            }
+        } else {
+            // 使用配置文件中的token
+            appToken = FEISHU_BASE_CONFIG.app_token;
+        }
+        
+        if (!appToken) {
+            throw new Error('未找到有效的Base标识符');
+        }
+        
+        // 测试连接
+        console.log('测试Base连接，app_token:', appToken);
+        
+        // 首先检测环境
+        if (typeof lark !== 'undefined' && lark) {
+            // 飞书环境：尝试使用SDK
+            try {
+                await FeishuBase.initialize();
+                
+                if (FeishuBase.client.isInitialized) {
+                    // 测试加载员工数据
+                    const employees = await FeishuBase.loadEmployees();
+                    
+                    resultDiv.className = 'alert alert-success';
+                    messageSpan.textContent = `✅ 连接成功！Base: ${appToken}，加载了 ${employees.length} 条员工记录`;
+                    resultDiv.style.display = 'block';
+                    
+                    console.log('飞书Base连接测试成功');
+                } else {
+                    throw new Error('飞书Base客户端初始化失败');
+                }
+            } catch (sdkError) {
+                console.warn('飞书SDK测试失败:', sdkError);
+                throw new Error(`飞书环境检测正常，但Base连接失败: ${sdkError.message}`);
+            }
+        } else {
+            // 非飞书环境：使用模拟数据
+            console.log('非飞书环境，使用模拟验证');
+            
+            // 验证配置文件中的token是否与输入一致
+            const configToken = FEISHU_BASE_CONFIG.app_token;
+            if (appToken === configToken) {
+                resultDiv.className = 'alert alert-warning';
+                messageSpan.textContent = `⚠️ 本地模式验证通过：Base配置正确（${appToken}），但需要飞书环境才能连接真实数据`;
+                resultDiv.style.display = 'block';
+            } else {
+                resultDiv.className = 'alert alert-warning';
+                messageSpan.textContent = `⚠️ 注意：输入标识符(${appToken})与配置标识符(${configToken})不一致，系统将使用配置文件`;
+                resultDiv.style.display = 'block';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Base连接测试失败:', error);
+        
+        resultDiv.className = 'alert alert-danger';
+        messageSpan.textContent = `❌ 连接失败: ${error.message}`;
+        resultDiv.style.display = 'block';
+    } finally {
+        // 恢复按钮状态
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+    }
 }
 
 console.log('AI培训评估系统主逻辑已加载');

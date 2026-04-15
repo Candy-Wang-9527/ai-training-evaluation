@@ -1,4 +1,5 @@
 // 统计分析页面 - 集成飞书Base版本
+// 使用公共工具库 AITrainingUtils
 
 // 图表实例
 let departmentChart = null;
@@ -67,7 +68,7 @@ async function loadStatisticsData() {
         
     } catch (error) {
         console.error('加载统计数据失败:', error);
-        showAlert('加载统计数据失败: ' + error.message, 'error');
+        AITrainingUtils.showAlert('加载统计数据失败: ' + error.message, 'error');
         loadSampleData(); // 降级到示例数据
     }
 }
@@ -146,8 +147,8 @@ async function getFeishuStatisticsData() {
 // 从本地存储获取统计数据
 function getLocalStatisticsData() {
     try {
-        const trainingScores = JSON.parse(localStorage.getItem('local_training_scores') || '[]');
-        const applicationScores = JSON.parse(localStorage.getItem('local_application_scores') || '[]');
+        const trainingScores = AITrainingUtils.loadFromLocalStorage('local_training_scores', []);
+        const applicationScores = AITrainingUtils.loadFromLocalStorage('local_application_scores', []);
         
         const statisticsData = [];
         const scoreMap = {};
@@ -200,7 +201,7 @@ function getLocalStatisticsData() {
 // 处理统计数据
 function processStatisticsData(data) {
     if (data.length === 0) {
-        showAlert('暂无统计数据，请先进行评分', 'info');
+        AITrainingUtils.showAlert('暂无统计数据，请先进行评分', 'info');
         loadSampleData(); // 加载示例数据演示
         return;
     }
@@ -253,9 +254,9 @@ function updateStatisticsSummary(data) {
     document.getElementById('totalEvaluations').textContent = data.length;
     
     // 设置颜色
-    setScoreColor(avgFinalScore, 'avgFinalScore');
-    setScoreColor(avgTrainingScore, 'avgTrainingScore');
-    setScoreColor(avgApplicationScore, 'avgApplicationScore');
+    AITrainingUtils.setScoreColor(avgFinalScore, 'avgFinalScore');
+    AITrainingUtils.setScoreColor(avgTrainingScore, 'avgTrainingScore');
+    AITrainingUtils.setScoreColor(avgApplicationScore, 'avgApplicationScore');
 }
 
 // 更新统计表格
@@ -283,10 +284,10 @@ function updateStatisticsTable(data) {
             <td>${index + 1}</td>
             <td>${item.employeeName}</td>
             <td>${item.employeeDepartment}</td>
-            <td class="${getScoreColorClass(item.trainingTotal)}">${item.trainingTotal.toFixed(1)}</td>
-            <td class="${getScoreColorClass(item.applicationTotal)}">${item.applicationTotal.toFixed(1)}</td>
-            <td class="fw-bold ${getScoreColorClass(item.finalScore)}">${item.finalScore.toFixed(1)}</td>
-            <td>${formatDate(item.evaluationDate)}</td>
+            <td class="${AITrainingUtils.getScoreColorClass(item.trainingTotal)}">${item.trainingTotal.toFixed(1)}</td>
+            <td class="${AITrainingUtils.getScoreColorClass(item.applicationTotal)}">${item.applicationTotal.toFixed(1)}</td>
+            <td class="fw-bold ${AITrainingUtils.getScoreColorClass(item.finalScore)}">${item.finalScore.toFixed(1)}</td>
+            <td>${AITrainingUtils.formatDate(item.evaluationDate)}</td>
             <td>${item.judgeName}</td>
         `;
         
@@ -349,8 +350,8 @@ function createDepartmentChart(data) {
             datasets: [{
                 label: '部门平均分',
                 data: sortedAverages,
-                backgroundColor: sortedAverages.map(score => getScoreColorByValue(score, true)),
-                borderColor: sortedAverages.map(score => getScoreColorByValue(score, false)),
+                backgroundColor: sortedAverages.map(score => AITrainingUtils.getScoreColorByValue(score, true)),
+                borderColor: sortedAverages.map(score => AITrainingUtils.getScoreColorByValue(score, false)),
                 borderWidth: 1
             }]
         },
@@ -400,7 +401,7 @@ function createDimensionChart(data) {
                 data: [avgTraining, avgApplication],
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                pointBackgroundColor: [getScoreColorByValue(avgTraining, false), getScoreColorByValue(avgApplication, false)],
+                pointBackgroundColor: [AITrainingUtils.getScoreColorByValue(avgTraining, false), AITrainingUtils.getScoreColorByValue(avgApplication, false)],
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
                 pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
@@ -451,7 +452,7 @@ function createTrendChart(data) {
     trendChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: recentData.map(item => formatDate(item.date)),
+            labels: recentData.map(item => AITrainingUtils.formatDate(item.date)),
             datasets: [{
                 label: '平均分趋势',
                 data: recentData.map(item => item.average),
@@ -484,7 +485,7 @@ function bindStatisticsEvents() {
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async function() {
             await loadStatisticsData();
-            showAlert('统计数据已刷新', 'success');
+            AITrainingUtils.showAlert('统计数据已刷新', 'success');
         });
     }
     
@@ -531,11 +532,11 @@ function exportStatistics() {
         
         URL.revokeObjectURL(url);
         
-        showAlert('统计数据已导出为CSV文件', 'success');
+        AITrainingUtils.showAlert('统计数据已导出为CSV文件', 'success');
         
     } catch (error) {
         console.error('导出统计数据失败:', error);
-        showAlert('导出失败: ' + error.message, 'error');
+        AITrainingUtils.showAlert('导出失败: ' + error.message, 'error');
     }
 }
 
@@ -588,96 +589,20 @@ function loadSampleData() {
 function updateDataSourceInfo(count, isSample = false) {
     const infoElement = document.getElementById('dataSourceInfo');
     if (!infoElement) return;
-    
+
+    let htmlContent = '';
     if (isSample) {
-        infoElement.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-1"></i>当前显示示例数据（${count}条记录）`;
+        htmlContent = `<i class="fas fa-exclamation-triangle text-warning me-1"></i>当前显示示例数据（${count}条记录）`;
     } else if (isFeishuEnv) {
-        infoElement.innerHTML = `<i class="fas fa-database text-success me-1"></i>数据来源：飞书Base（${count}条记录）`;
+        htmlContent = `<i class="fas fa-database text-success me-1"></i>数据来源：飞书Base（${count}条记录）`;
     } else {
-        infoElement.innerHTML = `<i class="fas fa-laptop text-info me-1"></i>数据来源：本地存储（${count}条记录）`;
+        htmlContent = `<i class="fas fa-laptop text-info me-1"></i>数据来源：本地存储（${count}条记录）`;
     }
+
+    AITrainingUtils.safeSetContent(infoElement, htmlContent, true);
 }
 
-// 根据分数获取颜色类
-function getScoreColorClass(score) {
-    if (score < 70) return 'text-danger';
-    if (score < 80) return 'text-warning';
-    if (score < 90) return 'text-info';
-    return 'text-success';
-}
 
-// 根据分数值获取颜色
-function getScoreColorByValue(score, isBackground = true) {
-    const alpha = isBackground ? '0.6' : '1';
-    
-    if (score < 70) return `rgba(220, 53, 69, ${alpha})`; // 红色
-    if (score < 80) return `rgba(255, 193, 7, ${alpha})`; // 黄色
-    if (score < 90) return `rgba(13, 110, 253, ${alpha})`; // 蓝色
-    return `rgba(25, 135, 84, ${alpha})`; // 绿色
-}
-
-// 设置分数颜色
-function setScoreColor(score, elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    // 移除之前的颜色类
-    element.classList.remove('text-danger', 'text-warning', 'text-info', 'text-success');
-    
-    // 根据分数设置颜色
-    element.classList.add(getScoreColorClass(score));
-}
-
-// 格式化日期
-function formatDate(dateString) {
-    if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
-}
-
-// 显示提示消息（与主页面相同）
-function showAlert(message, type = 'info') {
-    // 创建一个提示元素
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
-    
-    // 根据类型设置图标
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-    if (type === 'error') icon = 'times-circle';
-    if (type === 'info') icon = 'info-circle';
-    
-    alertDiv.innerHTML = `
-        <i class="fas fa-${icon} me-2"></i>${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // 添加到页面
-    const container = document.getElementById('alertContainer');
-    if (container) {
-        container.innerHTML = '';
-        container.appendChild(alertDiv);
-    }
-    
-    // 5秒后自动消失
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.classList.remove('show');
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.parentNode.removeChild(alertDiv);
-                }
-            }, 500);
-        }
-    }, 5000);
-}
 
 // 检查Chart.js是否已加载
 if (typeof Chart === 'undefined') {

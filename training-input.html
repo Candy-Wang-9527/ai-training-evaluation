@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>培训信息录入 - AI培训评估系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 飞书JS SDK -->
+    <script src="https://lf1-cdn-tos.bytegoofy.com/obj/eden-cn/ljhwzqkjuhp/lark/js-sdk/lark-jsapi.min.js"></script>
+
+    <style>
+        .role-badge {
+            font-size: 0.8em;
+            padding: 0.3em 0.6em;
+            border-radius: 0.25rem;
+        }
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        .participant-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>AI培训评估系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-edit me-1"></i>评分
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="training-input.html">
+                            <i class="fas fa-plus-circle me-1"></i>培训录入
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="statistics.html">
+                            <i class="fas fa-chart-bar me-1"></i>统计分析
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="role-config.html">
+                            <i class="fas fa-user-cog me-1"></i>角色配置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="config.html">
+                            <i class="fas fa-cog me-1"></i>系统配置
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-text ms-3">
+                    <i class="fas fa-user me-1"></i>当前用户：<span id="currentUser">加载中...</span>
+                    <span class="badge bg-info ms-2" id="roleBadge">角色检测中...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-graduation-cap text-primary me-2"></i>培训基础信息录入</h2>
+                <p class="text-muted">录入培训活动的基础信息，用于后续的评估和统计</p>
+            </div>
+        </div>
+
+        <!-- 权限检查 -->
+        <div id="permissionAlert" class="alert alert-warning" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="permissionMessage"></span>
+        </div>
+
+        <!-- 培训信息表单 -->
+        <div class="row" id="trainingFormContainer">
+            <div class="col-md-8">
+                <form id="trainingForm">
+                    <!-- 基础信息 -->
+                    <div class="form-section">
+                        <h5 class="mb-4"><i class="fas fa-info-circle text-primary me-2"></i>基础信息</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">培训名称</label>
+                                    <input type="text" class="form-control" id="trainingName" placeholder="例如：2026年Q1 AI工具培训" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">培训类型</label>
+                                    <select class="form-select" id="trainingType" required>
+                                        <option value="">请选择培训类型</option>
+                                        <option value="入门培训">入门培训</option>
+                                        <option value="进阶培训">进阶培训</option>
+                                        <option value="专题培训">专题培训</option>
+                                        <option value="实操培训">实操培训</option>
+                                        <option value="在线培训">在线培训</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">培训开始日期</label>
+                                    <input type="date" class="form-control" id="startDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">培训结束日期</label>
+                                    <input type="date" class="form-control" id="endDate" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">培训地点</label>
+                            <input type="text" class="form-control" id="location" placeholder="例如：会议室A、在线会议等">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">培训描述</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="请描述培训的目的、内容和预期效果..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 人员信息 -->
+                    <div class="form-section">
+                        <h5 class="mb-4"><i class="fas fa-users text-success me-2"></i>人员信息</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">培训讲师</label>
+                                    <select class="form-select" id="trainer" required>
+                                        <option value="">请选择讲师</option>
+                                        <!-- 动态加载讲师列表 -->
+                                    </select>
+                                    <small class="form-text text-muted">从讲师角色人员中选择</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">培训助理</label>
+                                    <input type="text" class="form-control" id="assistant" placeholder="培训助理姓名">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required-field">参与人员</label>
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addParticipantBtn">
+                                    <i class="fas fa-user-plus me-1"></i>添加参与人员
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="loadFromDeptBtn">
+                                    <i class="fas fa-users me-1"></i>按部门批量添加
+                                </button>
+                            </div>
+                            <div id="participantsList" class="border rounded p-3" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
+                                <p class="text-muted text-center mt-3">暂无参与人员，请点击上方按钮添加</p>
+                            </div>
+                            <input type="hidden" id="participantsData">
+                        </div>
+                    </div>
+
+                    <!-- 培训内容 -->
+                    <div class="form-section">
+                        <h5 class="mb-4"><i class="fas fa-book text-warning me-2"></i>培训内容</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">培训时长（小时）</label>
+                                    <input type="number" class="form-control" id="duration" min="0" step="0.5" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">培训人数</label>
+                                    <input type="number" class="form-control" id="participantCount" min="0" placeholder="0" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">评估周期</label>
+                                    <input type="text" class="form-control" id="evaluationPeriod" placeholder="例如：2026年Q1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">培训目标</label>
+                            <textarea class="form-control" id="objectives" rows="2" placeholder="培训要达到的具体目标..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">培训大纲</label>
+                            <textarea class="form-control" id="outline" rows="3" placeholder="培训的主要内容和时间安排..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="form-section">
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                                <i class="fas fa-redo me-2"></i>重置表单
+                            </button>
+                            <div>
+                                <button type="button" class="btn btn-primary me-2" id="saveDraftBtn">
+                                    <i class="fas fa-save me-2"></i>保存草稿
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>提交培训信息
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 右侧信息栏 -->
+            <div class="col-md-4">
+                <!-- 当前状态 -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>当前状态</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>当前角色：</strong>
+                            <span class="badge bg-info" id="currentRoleDisplay">人力部门</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>录入权限：</strong>
+                            <i class="fas fa-check-circle text-success"></i> 有权限
+                        </div>
+                        <div>
+                            <strong>最后保存：</strong>
+                            <span id="lastSaved">未保存</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近录入 -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-history me-2"></i>最近录入</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentTrainings">
+                            <p class="text-muted small">暂无最近录入记录</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作指南 -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>操作指南</h6>
+                    </div>
+                    <div class="card-body">
+                        <ol class="small mb-0">
+                            <li class="mb-2">填写培训基础信息</li>
+                            <li class="mb-2">选择培训讲师</li>
+                            <li class="mb-2">添加参与培训人员</li>
+                            <li class="mb-2">填写培训内容和目标</li>
+                            <li class="mb-2">保存草稿或直接提交</li>
+                            <li>提交后评审员可开始评分</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 选择参与人员模态框 -->
+    <div class="modal fade" id="participantModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-users me-2"></i>选择参与人员</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="participantSearch" placeholder="搜索员工姓名或部门...">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>可选人员</h6>
+                            <div id="availableParticipants" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px;">
+                                <!-- 动态加载可选人员 -->
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>已选人员 (<span id="selectedCount">0</span>)</h6>
+                            <div id="selectedParticipants" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px;">
+                                <p class="text-muted text-center">暂无选择</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmParticipantsBtn">
+                        <i class="fas fa-check me-2"></i>确认选择
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门批量添加模态框 -->
+    <div class="modal fade" id="departmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-building me-2"></i>按部门批量添加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择部门</label>
+                        <select class="form-select" id="departmentSelect">
+                            <option value="">请选择部门</option>
+                            <option value="研发部">研发部</option>
+                            <option value="产品部">产品部</option>
+                            <option value="销售部">销售部</option>
+                            <option value="实施部">实施部</option>
+                            <option value="技术部">技术部</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmDepartmentBtn">
+                        <i class="fas fa-check me-2"></i>添加部门人员
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                兆原数通（北京）数据科技有限公司 &copy; 2026
+                <span class="mx-2">|</span>
+                AI培训评估系统 v2.0
+                <span class="mx-2">|</span>
+                技术支持：王浩
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 飞书Base配置 -->
+    <script src="js/feishu-config-workflow.js"></script>
+
+    <!-- 角色配置 -->
+    <script src="js/role-config.js"></script>
+
+    <!-- 公共工具库 -->
+    <script src="js/utils.js"></script>
+
+    <!-- 培训录入页面逻辑 -->
+    <script>
+        // 全局变量
+        let selectedParticipants = [];
+        let allEmployees = [];
+        let allInstructors = [];
+        let participantModal;
+        let departmentModal;
+
+        // 页面加载初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('培训信息录入页面初始化...');
+
+            // 初始化模态框
+            participantModal = new bootstrap.Modal(document.getElementById('participantModal'));
+            departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'));
+
+            // 初始化角色系统
+            await initializeRoleSystem();
+
+            // 加载数据
+            await loadData();
+
+            // 绑定事件
+            bindEventListeners();
+
+            // 设置默认日期
+            setDefaultDates();
+        });
+
+        // 初始化角色系统
+        async function initializeRoleSystem() {
+            try {
+                const initResult = await window.RoleConfig.initialize();
+
+                // 更新UI显示用户信息
+                if (initResult.user) {
+                    document.getElementById('currentUser').textContent = initResult.user.name;
+                }
+
+                // 显示角色徽章
+                const roleConfig = window.RoleConfig.getRoleConfig(initResult.role);
+                if (roleConfig) {
+                    const roleBadge = document.getElementById('roleBadge');
+                    roleBadge.textContent = roleConfig.name;
+                    roleBadge.className = `badge ms-2 ${roleConfig.color}`;
+
+                    document.getElementById('currentRoleDisplay').textContent = roleConfig.name;
+                }
+
+                // 权限检查：只有人力部门可以录入培训信息
+                if (!window.RoleConfig.hasPermission(initResult.role, 'create_training')) {
+                    showPermissionAlert('您没有录入培训信息的权限。此功能仅限人力部门使用。');
+                    disableForm();
+                }
+
+            } catch (error) {
+                console.error('角色系统初始化失败:', error);
+                showPermissionAlert('角色系统初始化失败，请联系管理员。');
+            }
+        }
+
+        // 显示权限警告
+        function showPermissionAlert(message) {
+            const alertDiv = document.getElementById('permissionAlert');
+            const messageSpan = document.getElementById('permissionMessage');
+
+            messageSpan.textContent = message;
+            alertDiv.style.display = 'block';
+        }
+
+        // 禁用表单
+        function disableForm() {
+            const formContainer = document.getElementById('trainingFormContainer');
+            formContainer.style.display = 'none';
+        }
+
+        // 加载数据
+        async function loadData() {
+            try {
+                // 加载员工数据
+                allEmployees = await window.FeishuWorkflow.getTableData('employees');
+                console.log('加载了', allEmployees.length, '名员工');
+
+                // 加载讲师数据（从评委信息表中筛选）
+                allInstructors = await window.FeishuWorkflow.getTableData('judges');
+                console.log('加载了', allInstructors.length, '名讲师');
+
+                // 填充讲师下拉框
+                populateTrainerSelect();
+
+                // 加载最近的培训记录
+                loadRecentTrainings();
+
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                AITrainingUtils.showAlert('数据加载失败，请检查飞书Base连接', 'warning');
+            }
+        }
+
+        // 填充讲师下拉框
+        function populateTrainerSelect() {
+            const trainerSelect = document.getElementById('trainer');
+
+            // 清空现有选项
+            trainerSelect.innerHTML = '<option value="">请选择讲师</option>';
+
+            // 添加讲师选项
+            allInstructors.forEach(instructor => {
+                const option = document.createElement('option');
+                option.value = instructor.judge_name;
+                option.textContent = `${instructor.judge_name} - ${instructor.judge_dept}`;
+                trainerSelect.appendChild(option);
+            });
+        }
+
+        // 加载最近培训记录
+        async function loadRecentTrainings() {
+            try {
+                const recentTrainings = await window.FeishuWorkflow.getTableData('trainings');
+                const recentDiv = document.getElementById('recentTrainings');
+
+                if (recentTrainings.length > 0) {
+                    // 显示最近5条记录
+                    const recent = recentTrainings.slice(-5).reverse();
+
+                    let html = '<ul class="list-unstyled mb-0">';
+                    recent.forEach(training => {
+                        html += `
+                            <li class="mb-2">
+                                <small>
+                                    <strong>${training.training_name}</strong><br>
+                                    <span class="text-muted">${training.start_date} ~ ${training.end_date}</span>
+                                </small>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+
+                    recentDiv.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('加载最近培训记录失败:', error);
+            }
+        }
+
+        // 绑定事件监听器
+        function bindEventListeners() {
+            // 表单提交
+            document.getElementById('trainingForm').addEventListener('submit', handleFormSubmit);
+
+            // 添加参与人员按钮
+            document.getElementById('addParticipantBtn').addEventListener('click', showParticipantModal);
+
+            // 按部门批量添加
+            document.getElementById('loadFromDeptBtn').addEventListener('click', showDepartmentModal);
+
+            // 确认参与人员选择
+            document.getElementById('confirmParticipantsBtn').addEventListener('click', confirmParticipantSelection);
+
+            // 确认部门选择
+            document.getElementById('confirmDepartmentBtn').addEventListener('click', confirmDepartmentSelection);
+
+            // 重置按钮
+            document.getElementById('resetBtn').addEventListener('click', resetForm);
+
+            // 保存草稿
+            document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
+
+            // 参与人员搜索
+            document.getElementById('participantSearch').addEventListener('input', filterParticipants);
+
+            // 参与人员数量自动更新
+            document.getElementById('participantsList').addEventListener('DOMNodeInserted', updateParticipantCount);
+        }
+
+        // 设置默认日期
+        function setDefaultDates() {
+            const today = new Date();
+            const startDate = today.toISOString().split('T')[0];
+            const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const endDate = nextWeek.toISOString().split('T')[0];
+
+            document.getElementById('startDate').value = startDate;
+            document.getElementById('endDate').value = endDate;
+        }
+
+        // 显示参与人员选择模态框
+        function showParticipantModal() {
+            // 加载可选人员列表
+            renderAvailableParticipants();
+
+            // 显示模态框
+            participantModal.show();
+        }
+
+        // 显示部门选择模态框
+        function showDepartmentModal() {
+            departmentModal.show();
+        }
+
+        // 渲染可选人员列表
+        function renderAvailableParticipants(searchTerm = '') {
+            const availableDiv = document.getElementById('availableParticipants');
+            availableDiv.innerHTML = '';
+
+            // 过滤已选择的人员
+            const selectedIds = selectedParticipants.map(p => p.record_id || p.id);
+            const available = allEmployees.filter(emp =>
+                !selectedIds.includes(emp.record_id || emp.id) &&
+                (emp.name.includes(searchTerm) || emp.department.includes(searchTerm))
+            );
+
+            if (available.length === 0) {
+                availableDiv.innerHTML = '<p class="text-muted text-center">暂无可选人员</p>';
+                return;
+            }
+
+            available.forEach(employee => {
+                const item = document.createElement('div');
+                item.className = 'form-check';
+                item.innerHTML = `
+                    <input class="form-check-input" type="checkbox" value="${employee.record_id || employee.id}" id="emp_${employee.record_id || employee.id}">
+                    <label class="form-check-label" for="emp_${employee.record_id || employee.id}">
+                        ${employee.name} - ${employee.department}
+                    </label>
+                `;
+                availableDiv.appendChild(item);
+            });
+        }
+
+        // 过滤参与人员
+        function filterParticipants() {
+            const searchTerm = document.getElementById('participantSearch').value;
+            renderAvailableParticipants(searchTerm);
+        }
+
+        // 确认参与人员选择
+        function confirmParticipantSelection() {
+            const checkboxes = document.querySelectorAll('#availableParticipants input[type="checkbox"]:checked');
+
+            checkboxes.forEach(checkbox => {
+                const employeeId = checkbox.value;
+                const employee = allEmployees.find(emp => (emp.record_id || emp.id) === employeeId);
+
+                if (employee && !selectedParticipants.find(p => (p.record_id || p.id) === employeeId)) {
+                    selectedParticipants.push(employee);
+                }
+            });
+
+            // 更新已选人员显示
+            renderSelectedParticipants();
+
+            // 关闭模态框
+            participantModal.hide();
+
+            // 清空搜索框
+            document.getElementById('participantSearch').value = '';
+        }
+
+        // 确认部门选择
+        function confirmDepartmentSelection() {
+            const department = document.getElementById('departmentSelect').value;
+
+            if (!department) {
+                AITrainingUtils.showAlert('请选择部门', 'warning');
+                return;
+            }
+
+            // 添加该部门的所有员工
+            const deptEmployees = allEmployees.filter(emp => emp.department === department);
+
+            deptEmployees.forEach(employee => {
+                const employeeId = employee.record_id || employee.id;
+                if (!selectedParticipants.find(p => (p.record_id || p.id) === employeeId)) {
+                    selectedParticipants.push(employee);
+                }
+            });
+
+            // 更新显示
+            renderSelectedParticipants();
+
+            // 关闭模态框
+            departmentModal.show();
+
+            AITrainingUtils.showAlert(`已添加 ${deptEmployees.length} 名${department}员工`, 'success');
+        }
+
+        // 渲染已选人员列表
+        function renderSelectedParticipants() {
+            const selectedDiv = document.getElementById('selectedParticipants');
+            const participantsListDiv = document.getElementById('participantsList');
+
+            // 更新模态框中的显示
+            if (selectedParticipants.length === 0) {
+                selectedDiv.innerHTML = '<p class="text-muted text-center">暂无选择</p>';
+                participantsListDiv.innerHTML = '<p class="text-muted text-center mt-3">暂无参与人员，请点击上方按钮添加</p>';
+            } else {
+                // 模态框显示
+                selectedDiv.innerHTML = '';
+                selectedParticipants.forEach((participant, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'participant-item';
+                    item.innerHTML = `
+                        ${participant.name} - ${participant.department}
+                        <button type="button" class="btn btn-sm btn-outline-danger float-end" onclick="removeParticipant(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    selectedDiv.appendChild(item);
+                });
+
+                // 主表单显示
+                participantsListDiv.innerHTML = '';
+                selectedParticipants.forEach((participant, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'participant-item';
+                    item.innerHTML = `
+                        ${participant.name} - ${participant.department}
+                        <button type="button" class="btn btn-sm btn-outline-danger float-end" onclick="removeParticipant(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    participantsListDiv.appendChild(item);
+                });
+            }
+
+            // 更新计数
+            document.getElementById('selectedCount').textContent = selectedParticipants.length;
+            document.getElementById('participantCount').value = selectedParticipants.length;
+        }
+
+        // 移除参与人员
+        function removeParticipant(index) {
+            selectedParticipants.splice(index, 1);
+            renderSelectedParticipants();
+        }
+
+        // 更新参与人员数量
+        function updateParticipantCount() {
+            document.getElementById('participantCount').value = selectedParticipants.length;
+        }
+
+        // 处理表单提交
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            // 验证表单
+            if (selectedParticipants.length === 0) {
+                AITrainingUtils.showAlert('请至少添加一名参与人员', 'warning');
+                return;
+            }
+
+            try {
+                // 收集表单数据
+                const trainingData = {
+                    training_name: document.getElementById('trainingName').value,
+                    training_type: document.getElementById('trainingType').value,
+                    start_date: document.getElementById('startDate').value,
+                    end_date: document.getElementById('endDate').value,
+                    location: document.getElementById('location').value,
+                    description: document.getElementById('description').value,
+                    trainer: document.getElementById('trainer').value,
+                    assistant: document.getElementById('assistant').value,
+                    participants: selectedParticipants.map(p => p.name).join(','),
+                    participant_count: selectedParticipants.length,
+                    duration: document.getElementById('duration').value,
+                    evaluation_period: document.getElementById('evaluationPeriod').value,
+                    objectives: document.getElementById('objectives').value,
+                    outline: document.getElementById('outline').value,
+                    created_by: window.RoleConfig.getCurrentUser()?.name || '未知',
+                    status: 'active'
+                };
+
+                // 保存到飞书Base
+                const result = await window.FeishuWorkflow.createRecord('trainings', trainingData);
+
+                if (result.success) {
+                    AITrainingUtils.showAlert('培训信息创建成功！', 'success');
+
+                    // 清空表单
+                    resetForm();
+
+                    // 刷新最近培训记录
+                    loadRecentTrainings();
+
+                } else {
+                    AITrainingUtils.showAlert('保存失败: ' + result.message, 'error');
+                }
+
+            } catch (error) {
+                console.error('提交培训信息失败:', error);
+                AITrainingUtils.handleError(error, '提交培训信息');
+            }
+        }
+
+        // 保存草稿
+        async function saveDraft() {
+            // 保存到本地存储
+            const draftData = {
+                training_name: document.getElementById('trainingName').value,
+                training_type: document.getElementById('trainingType').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                trainer: document.getElementById('trainer').value,
+                participants: selectedParticipants,
+                created_time: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const drafts = JSON.parse(localStorage.getItem('training_drafts') || '[]');
+            drafts.push(draftData);
+            localStorage.setItem('training_drafts', JSON.stringify(drafts));
+
+            // 更新最后保存时间
+            const now = new Date();
+            document.getElementById('lastSaved').textContent = now.toLocaleString('zh-CN');
+
+            AITrainingUtils.showAlert('草稿已保存', 'success');
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('trainingForm').reset();
+            selectedParticipants = [];
+            renderSelectedParticipants();
+            setDefaultDates();
+        }
+
+        console.log('培训信息录入页面逻辑已加载');
+    </script>
+</body>
+</html>
