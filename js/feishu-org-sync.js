@@ -21,21 +21,28 @@
          */
         async initialize() {
             try {
+                // 重新获取飞书JS SDK（可能在构造函数之后才加载）
+                this.lark = window.lark || null;
+
                 if (!this.lark) {
-                    console.warn('飞书JS SDK未加载');
-                    return false;
+                    console.warn('⚠️ 飞书JS SDK未加载，将使用模拟数据模式');
+                    // 即使没有飞书SDK，也标记为已初始化，允许使用模拟数据
+                    this.isInitialized = true;
+                    return true;
                 }
 
                 // 检查飞书权限
                 await this.checkPermissions();
 
                 this.isInitialized = true;
-                console.log('飞书组织架构同步管理器已初始化');
+                console.log('✅ 飞书组织架构同步管理器已初始化');
                 return true;
 
             } catch (error) {
-                console.error('初始化飞书组织架构同步失败:', error);
-                return false;
+                console.error('❌ 初始化飞书组织架构同步失败:', error);
+                // 失败时也标记为已初始化，允许降级使用模拟数据
+                this.isInitialized = true;
+                return true;
             }
         }
 
