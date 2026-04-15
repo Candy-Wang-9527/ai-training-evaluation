@@ -378,15 +378,17 @@ function bindConfigEvents() {
 
 // 修复：绑定权重滑块和输入框同步事件
 function bindWeightSliders() {
+    console.log('🔧 开始绑定权重滑块同步事件...');
+
     // 定义所有权重配置项
     const weightConfigs = [
-        { slider: 'weightBasic', input: 'weightBasicInput' },
-        { slider: 'weightOptimization', input: 'weightOptimizationInput' },
-        { slider: 'weightQuality', input: 'weightQualityInput' },
-        { slider: 'weightTeam', input: 'weightTeamInput' },
-        { slider: 'weightOKR', input: 'weightOKRInput' },
-        { slider: 'weightRelevance', input: 'weightRelevanceInput' },
-        { slider: 'weightContribution', input: 'weightContributionInput' }
+        { slider: 'weightBasic', input: 'weightBasicInput', name: '入门培训' },
+        { slider: 'weightOptimization', input: 'weightOptimizationInput', name: '优化使用' },
+        { slider: 'weightQuality', input: 'weightQualityInput', name: '质量保障' },
+        { slider: 'weightTeam', input: 'weightTeamInput', name: '团队赋能' },
+        { slider: 'weightOKR', input: 'weightOKRInput', name: 'OKR贡献' },
+        { slider: 'weightRelevance', input: 'weightRelevanceInput', name: 'OKR关联度' },
+        { slider: 'weightContribution', input: 'weightContributionInput', name: 'OKR贡献度' }
     ];
 
     // 为每个权重配置项绑定同步事件
@@ -394,9 +396,16 @@ function bindWeightSliders() {
         const slider = document.getElementById(config.slider);
         const input = document.getElementById(config.input);
 
+        console.log(`检查${config.name}: slider=${!!slider}, input=${!!input}`);
+
         if (slider && input) {
+            // 移除旧的事件监听器(如果存在)
+            slider.removeEventListener('input', null);
+            input.removeEventListener('input', null);
+
             // 滑块变化 -> 更新输入框
             slider.addEventListener('input', function() {
+                console.log(`🎚️ ${config.name}滑块变化: ${this.value}`);
                 const value = parseInt(this.value) || 0;
                 input.value = value;
                 updateWeightTotalDisplay();
@@ -404,6 +413,7 @@ function bindWeightSliders() {
 
             // 输入框变化 -> 更新滑块
             input.addEventListener('input', function() {
+                console.log(`✏️ ${config.name}输入框变化: ${this.value}`);
                 let value = parseInt(this.value) || 0;
 
                 // 限制范围0-100
@@ -415,11 +425,13 @@ function bindWeightSliders() {
                 updateWeightTotalDisplay();
             });
 
-            console.log(`已绑定权重同步: ${config.slider} <-> ${config.input}`);
+            console.log(`✅ ${config.name}滑块同步事件已绑定`);
         } else {
-            console.warn(`未找到权重元素: ${config.slider} 或 ${config.input}`);
+            console.error(`❌ ${config.name}元素未找到: slider=${!!slider}, input=${!!input}`);
         }
     });
+
+    console.log('✅ 权重滑块同步事件绑定完成');
 }
 
 // 修复：更新权重总和显示

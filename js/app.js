@@ -207,29 +207,37 @@ function bindEventListeners() {
         const slider = document.getElementById(`score${i}Slider`);
         const input = document.getElementById(`score${i}Input`);
         const display = document.getElementById(`score${i}Display`);
-        
+
+        console.log(`初始化评分${i}: slider=${!!slider}, input=${!!input}, display=${!!display}`);
+
         if (slider && input && display) {
-            // 滑块变化
+            // 滑块变化 -> 更新输入框和显示
             slider.addEventListener('input', function() {
+                console.log(`滑块${i}变化: ${this.value}`);
                 const value = parseInt(this.value);
                 input.value = value;
                 display.textContent = value;
                 updateScorePreview();
             });
-            
-            // 输入框变化
+
+            // 输入框变化 -> 更新滑块和显示
             input.addEventListener('input', function() {
+                console.log(`输入框${i}变化: ${this.value}`);
                 let value = parseInt(this.value) || 0;
-                
+
                 // 限制范围0-100
                 if (value < 0) value = 0;
                 if (value > 100) value = 100;
-                
+
                 this.value = value;
                 slider.value = value;
                 display.textContent = value;
                 updateScorePreview();
             });
+
+            console.log(`✅ 评分${i}滑块同步事件已绑定`);
+        } else {
+            console.error(`❌ 评分${i}元素未找到: slider=${!!slider}, input=${!!input}, display=${!!display}`);
         }
     }
     
